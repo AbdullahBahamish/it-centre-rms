@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Record</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    label { display: block; margin-top: 12px; }
+    input, select, textarea {
+      width: 400px;
+      padding: 6px;
+      margin-top: 4px;
+    }
+    textarea { height: 100px; }
+    button {
+      margin-top: 16px;
+      padding: 6px 16px;
+      border: 1px solid #333;
+      background: #eee;
+    }
+    a { margin-left: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>Create Record</h1>
+
+<form>
+  <label>
+    Title
+    <input type="text" placeholder="Enter record title">
+  </label>
+
+  <label>
+    Record Type
+    <select>
+      <option>Administrative</option>
+      <option>Legal</option>
+      <option>Operational</option>
+    </select>
+  </label>
+
+  <label>
+    Contributors
+    <select multiple size="5">
+      <option>Abdullah</option>
+      <option>IT Manager</option>
+      <option>HR Officer</option>
+      <option>Secretary</option>
+    </select>
+  </label>
+
+  <label>
+    Case Description (optional)
+    <textarea placeholder="Background, notes, or explanation"></textarea>
+  </label>
+
+  <label>
+    Retention Until
+    <input type="date">
+  </label>
+
+  <button type="button">Save</button>
+  <a href="index.html">Cancel</a>
+</form>
+
+</body>
+</html>

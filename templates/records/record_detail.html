@@ -1,0 +1,76 @@
+    {% load i18n %}
+    <!DOCTYPE html>
+    <html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
+    <head>
+    <meta charset="UTF-8">
+    <title>{{ record.title }}</title>
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background: #f5f6f8;
+        margin: 0;
+        }
+
+        header {
+        background: #1b3f73;
+        color: white;
+        padding: 20px 32px;
+        }
+
+        main {
+        background: white;
+        margin: 24px;
+        padding: 24px 32px;
+        border-radius: 4px;
+        }
+
+        .label {
+        font-weight: bold;
+        color: #1b3f73;
+        }
+    </style>
+    </head>
+
+    <body>
+
+    <header>
+    <h1>{{ record.title }}</h1>
+    </header>
+
+    <main>
+
+    <p>
+        <span class="label">{% trans "Record Type" %}:</span>
+        {{ record.record_type }}
+    </p>
+
+    <p>
+        <span class="label">{% trans "Status" %}:</span>
+        {{ record.status|capfirst }}
+    </p>
+
+    {% if record.case_description %}
+    <p>
+        <span class="label">{% trans "Description" %}:</span><br>
+        {{ record.case_description }}
+    </p>
+    {% endif %}
+
+    <p>
+        <a href="{% url 'record_list' %}">{% trans "Back to list" %}</a>
+    </p>
+
+        {% if record.attachments.all %}
+        <ul>
+            {% for attachment in record.attachments.all %}
+            <li>{{ attachment.file.name }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p><em>{% trans "No files uploaded yet." %}</em></p>
+        {% endif %}
+
+    </main>
+
+    </body>
+    </html>

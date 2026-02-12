@@ -1,0 +1,5 @@
+msgid "Record Registry"
+msgstr "سجل المعاملات"
+
+msgid "Create Record"
+msgstr "إنشاء سجل"
