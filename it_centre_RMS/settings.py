@@ -72,11 +72,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
 
-
-
-WSGI_APPLICATION = 'config.wsgi.application'
+ROOT_URLCONF = 'it_centre_RMS.urls'
+WSGI_APPLICATION = 'it_centre_RMS.wsgi.application'
 
 
 # Database

@@ -25,9 +25,9 @@ def home(request):
 
 
 urlpatterns = [
-    path("", home),  
-    path('admin/', admin.site.urls), 
+    path("", home),
+    path("admin/", admin.site.urls),
     path("records/", include("apps.records.urls")),
-    path('i18n/setlang/', set_language, name='set_language'),
-
+    path("accounts/", include("django.contrib.auth.urls")),  # correct
+    path("i18n/setlang/", set_language, name="set_language"),
 ]
