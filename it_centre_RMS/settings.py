@@ -73,8 +73,8 @@ MIDDLEWARE = [
 ]
 
 
-ROOT_URLCONF = 'it_centre_RMS.urls'
-WSGI_APPLICATION = 'it_centre_RMS.wsgi.application'
+ROOT_URLCONF = 'it_centre_rms.urls'
+WSGI_APPLICATION = 'it_centre_rms.wsgi.application'
 
 
 # Database
