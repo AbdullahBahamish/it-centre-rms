@@ -1,0 +1,28 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}IT Centre{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <header>
+        <div class="header-content">
+            <img src="{% static 'images/uni_logo.png' %}" alt="University Logo" class="logo">
+            <h1>{% block header_title %}IT Centre{% endblock %}</h1>
+        </div>
+    </header>
+
+    {% block page_wrapper %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    {% endblock %}
+
+</body>
+
+</html>

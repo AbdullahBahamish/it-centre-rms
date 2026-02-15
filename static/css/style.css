@@ -1,0 +1,144 @@
+/* ===== Global Reset ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    background: #f5f6f8;
+    color: #222;
+}
+
+/* ===== Header ===== */
+header {
+    background: #1b3f73;
+    color: white;
+    padding: 20px 32px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.logo {
+    height: 48px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+/* ===== Main Layout ===== */
+main {
+    padding: 24px 32px;
+}
+
+/* ===== Form Styling ===== */
+form {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 32px 40px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+fieldset {
+    border: none;
+    margin-bottom: 24px;
+    padding: 0;
+}
+
+legend {
+    font-weight: 600;
+    color: #1b3f73;
+    margin-bottom: 12px;
+}
+
+label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border: 1px solid #ccd2da;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #1b3f73;
+    box-shadow: 0 0 0 2px rgba(27, 63, 115, 0.15);
+}
+
+/* ===== Buttons ===== */
+.primary-btn {
+    background: #1b3f73;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.primary-btn:hover {
+    background: #16345e;
+}
+
+.cancel {
+    margin-left: 16px;
+    color: #1b3f73;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.cancel:hover {
+    text-decoration: underline;
+}
+
+/* ===== Table Styling ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: start;
+    /* RTL friendly */
+}
+
+th {
+    background: #eef2f7;
+}
+
+/* ===== Record Detail ===== */
+.detail-container {
+    background: white;
+    margin: 24px;
+    padding: 24px 32px;
+    border-radius: 6px;
+}
+
+.label {
+    font-weight: bold;
+    color: #1b3f73;
+}

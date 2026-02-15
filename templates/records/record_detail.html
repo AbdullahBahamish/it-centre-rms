@@ -1,76 +1,47 @@
-    {% load i18n %}
-    <!DOCTYPE html>
-    <html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <head>
-    <meta charset="UTF-8">
-    <title>{{ record.title }}</title>
-    <style>
-        body {
-        font-family: Arial, sans-serif;
-        background: #f5f6f8;
-        margin: 0;
-        }
+{% extends "base.html" %}
+{% load i18n static %}
 
-        header {
-        background: #1b3f73;
-        color: white;
-        padding: 20px 32px;
-        }
+{% block title %}{{ record.title }}{% endblock %}
+{% block header_title %}{{ record.title }}{% endblock %}
 
-        main {
-        background: white;
-        margin: 24px;
-        padding: 24px 32px;
-        border-radius: 4px;
-        }
+{% block content %}
 
-        .label {
-        font-weight: bold;
-        color: #1b3f73;
-        }
-    </style>
-    </head>
+<p>
+    <span class="label">{% trans "Record Type" %}:</span>
+    {{ record.record_type }}
+</p>
 
-    <body>
+<p>
+    <span class="label">{% trans "Status" %}:</span>
+    {{ record.status|capfirst }}
+</p>
 
-    <header>
-    <h1>{{ record.title }}</h1>
-    </header>
+{% if record.case_description %}
+<p>
+    <span class="label">{% trans "Description" %}:</span><br>
+    {{ record.case_description }}
+</p>
+{% endif %}
 
-    <main>
+<p>
+    <a href="{% url 'record_list' %}">{% trans "Back to list" %}</a>
+</p>
 
-    <p>
-        <span class="label">{% trans "Record Type" %}:</span>
-        {{ record.record_type }}
-    </p>
+{% if record.attachments.all %}
+<ul>
+    {% for attachment in record.attachments.all %}
+    <li>{{ attachment.file.name }}</li>
+    {% endfor %}
+</ul>
 
-    <p>
-        <span class="label">{% trans "Status" %}:</span>
-        {{ record.status|capfirst }}
-    </p>
+{% if perms.records.delete_record %}
+<a href="{% url 'record_delete' record.id %}" class="danger-btn">
+    {% trans "Delete" %}
+</a>
+{% endif %}
 
-    {% if record.case_description %}
-    <p>
-        <span class="label">{% trans "Description" %}:</span><br>
-        {{ record.case_description }}
-    </p>
-    {% endif %}
+{% else %}
+<p><em>{% trans "No files uploaded yet." %}</em></p>
+{% endif %}
 
-    <p>
-        <a href="{% url 'record_list' %}">{% trans "Back to list" %}</a>
-    </p>
-
-        {% if record.attachments.all %}
-        <ul>
-            {% for attachment in record.attachments.all %}
-            <li>{{ attachment.file.name }}</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p><em>{% trans "No files uploaded yet." %}</em></p>
-        {% endif %}
-
-    </main>
-
-    </body>
-    </html>
+{% endblock %}

@@ -1,5 +1,5 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, permission_required
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
 
 from .services import RecordService
@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 User = get_user_model()
 
 
-@login_required
+# @login_required
 def record_list(request):
     records = RecordService.list_records()
     return render(request, "records/record_list.html", {
@@ -44,7 +44,7 @@ def record_create(request):
     })
 
 
-@login_required
+# @login_required
 def record_detail(request, record_id):
     record = get_object_or_404(Record, id=record_id)
 
@@ -65,3 +65,16 @@ def upload_attachment(request, record_id):
 
     return redirect("record_detail", record_id=record.id)
 
+
+@permission_required("records.delete_record", raise_exception=True)
+@login_required
+def record_delete(request, record_id):
+    record = get_object_or_404(Record, id=record_id)
+
+    if request.method == "POST":
+        record.delete()
+        return redirect("record_list")
+
+    return render(request, "records/record_confirm_delete.html", {
+        "record": record
+    })

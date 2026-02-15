@@ -1,133 +1,43 @@
+{% extends "base.html" %}
 {% load i18n %}
-<!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-<head>
-  <meta charset="UTF-8">
-  <title>{% trans "Record Registry" %}</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f5f6f8;
-      color: #222;
-    }
 
-    header {
-      background: #1b3f73;
-      color: white;
-      padding: 20px 32px;
-    }
+{% block title %}{% trans "Record Registry" %}{% endblock %}
+{% block header_title %}{% trans "Record Registry" %}{% endblock %}
 
-    header h1 {
-      margin: 0;
-      font-size: 24px;
-    }
+{% block content %}
+<div class="top-bar">
+  <a href="{% url 'record_create' %}" class="primary-btn">
+    {% trans "+ Create New Record" %}
+  </a>
+</div>
 
-    main {
-      padding: 24px 32px;
-    }
+<table>
+  <thead>
+    <tr>
+      <th>{% trans "Title" %}</th>
+      <th>{% trans "Record Type" %}</th>
+      <th>{% trans "Status" %}</th>
+    </tr>
+  </thead>
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .primary-btn {
-      background: #1b3f73;
-      color: white;
-      padding: 10px 16px;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 4px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: {% if LANGUAGE_CODE == 'ar' %}right{% else %}left{% endif %};
-    }
-
-    th {
-      background: #eef2f7;
-    }
-
-    .footer-note {
-      margin-top: 14px;
-      font-size: 12px;
-      color: #555;
-    }
-
-    .lang-switch select {
-      padding: 4px;
-    }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <h1>{% trans "Record Registry" %}</h1>
-</header>
-
-<main>
-
-  <div class="top-bar">
-    <a href="{% url 'record_create' %}" class="primary-btn">
-      {% trans "+ Create New Record" %}
-    </a>
-
-    <form method="post" action="{% url 'set_language' %}" class="lang-switch">
-      {% csrf_token %}
-      <select name="language" onchange="this.form.submit()">
-        <option value="en">English</option>
-        <option value="ar">العربية</option>
-      </select>
-    </form>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>{% trans "Title" %}</th>
-        <th>{% trans "Record Type" %}</th>
-        <th>{% trans "Status" %}</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {% for record in records %}
-      <tr>
-        <td>
-          <a href="{% url 'record_detail' record.id %}">
-            {{ record.title }}
-          </a>
-        </td>
-        <td>{{ record.record_type }}</td>
-        <td>{{ record.status|capfirst }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="3" align="center">
-          <em>{% trans "No records have been created yet." %}</em>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="footer-note">
-    {% trans "Official internal records subject to retention and audit policy." %}
-  </div>
-
-</main>
-
-</body>
-</html>
+  <tbody>
+    {% for record in records %}
+    <tr>
+      <td>
+        <a href="{% url 'record_detail' record.id %}">
+          {{ record.title }}
+        </a>
+      </td>
+      <td>{{ record.record_type }}</td>
+      <td>{{ record.status|capfirst }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="3" align="center">
+        <em>{% trans "No records have been created yet." %}</em>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

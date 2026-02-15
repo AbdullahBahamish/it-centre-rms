@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Record" %}{% endblock %}
+{% block header_title %}{% trans "Delete Record" %}{% endblock %}
+
+{% block content %}
+
+<p>
+    {% trans "Are you sure you want to delete:" %}
+    <strong>{{ record.title }}</strong> ?
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="primary-btn">
+        {% trans "Confirm Delete" %}
+    </button>
+
+    <a href="{% url 'record_detail' record.id %}" class="cancel">
+        {% trans "Cancel" %}
+    </a>
+</form>
+
+{% endblock %}

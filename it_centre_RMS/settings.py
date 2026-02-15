@@ -42,10 +42,12 @@ TEMPLATES = [
     },
 ]
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
 
 RECORD_BACKUP_DIR = BASE_DIR / "backup" / "records"
 

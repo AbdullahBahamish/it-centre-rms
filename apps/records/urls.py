@@ -6,4 +6,6 @@ urlpatterns = [
     path("create/", views.record_create, name="record_create"),
     path("<int:record_id>/", views.record_detail, name="record_detail"),
     path("<int:record_id>/upload/", views.upload_attachment, name="upload_attachment"),
+    path("<int:record_id>/delete/", views.record_delete, name="record_delete"),
 ]
+
