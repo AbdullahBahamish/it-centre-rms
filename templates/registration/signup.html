@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Account" %} - IT Centre{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>{% trans "Create Account" %}</h2>
+
+    {% if form.errors %}
+    <div class="error-message">
+        <p>{% trans "Please correct the errors below:" %}</p>
+        <ul>
+            {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">{% trans "Create Account" %}</button>
+    </form>
+
+    <p class="auth-footer">
+        {% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Login here" %}</a>
+    </p>
+</div>
+{% endblock %}

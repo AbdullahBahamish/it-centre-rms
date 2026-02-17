@@ -2,46 +2,75 @@
 {% load i18n static %}
 
 {% block title %}{{ record.title }}{% endblock %}
-{% block header_title %}{{ record.title }}{% endblock %}
+{% block header_title %}{% trans "Record Details" %}{% endblock %}
 
 {% block content %}
 
-<p>
-    <span class="label">{% trans "Record Type" %}:</span>
-    {{ record.record_type }}
-</p>
+<div class="detail-container">
+    <div class="detail-header">
+        <h2>{{ record.title }}</h2>
+        <span class="status-badge {{ record.status }}">{{ record.get_status_display }}</span>
+    </div>
 
-<p>
-    <span class="label">{% trans "Status" %}:</span>
-    {{ record.status|capfirst }}
-</p>
+    <div class="record-meta">
+        <div class="meta-item">
+            <span class="meta-label">{% trans "Record Type" %}</span>
+            <span class="meta-value">{{ record.record_type }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">{% trans "Created By" %}</span>
+            <span class="meta-value">
+                {% if record.created_by %}
+                {{ record.created_by.username }}
+                {% else %}
+                <em>{% trans "Anonymous" %}</em>
+                {% endif %}
+            </span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">{% trans "Date Created" %}</span>
+            <span class="meta-value">{{ record.created_at|date:"M d, Y" }}</span>
+        </div>
+    </div>
 
-{% if record.case_description %}
-<p>
-    <span class="label">{% trans "Description" %}:</span><br>
-    {{ record.case_description }}
-</p>
-{% endif %}
+    {% if record.case_description %}
+    <div class="description-section">
+        <span class="meta-label">{% trans "Description" %}</span>
+        <div style="margin-top: 8px; line-height: 1.6;">
+            {{ record.case_description|linebreaks }}
+        </div>
+    </div>
+    {% endif %}
 
-<p>
-    <a href="{% url 'record_list' %}">{% trans "Back to list" %}</a>
-</p>
+    <div class="attachments-section">
+        <span class="meta-label">{% trans "Attachments" %}</span>
+        {% if record.attachments.all %}
+        <ul class="attachments-list">
+            {% for attachment in record.attachments.all %}
+            <li class="attachment-item">
+                <span style="margin-right: 8px;">📎</span>
+                <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.file.name }}</a>
+                <span style="margin-left: auto; color: #6b7280; font-size: 12px;">{{ attachment.uploaded_at|date:"M d,
+                    Y" }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="color: #6b7280; margin-top: 8px; font-style: italic;">{% trans "No files attached." %}</p>
+        {% endif %}
+    </div>
 
-{% if record.attachments.all %}
-<ul>
-    {% for attachment in record.attachments.all %}
-    <li>{{ attachment.file.name }}</li>
-    {% endfor %}
-</ul>
+    <div class="action-bar">
+        <a href="{% url 'record_list' %}" class="back-link">
+            <span>←</span> {% trans "Back to Registry" %}
+        </a>
 
-{% if perms.records.delete_record %}
-<a href="{% url 'record_delete' record.id %}" class="danger-btn">
-    {% trans "Delete" %}
-</a>
-{% endif %}
-
-{% else %}
-<p><em>{% trans "No files uploaded yet." %}</em></p>
-{% endif %}
+        {% if user.is_authenticated and perms.records.delete_record %}
+        <a href="{% url 'record_delete' record.id %}" class="btn btn-danger">
+            {% trans "Delete Record" %}
+        </a>
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

@@ -12,8 +12,39 @@
 
     <header>
         <div class="header-content">
-            <img src="{% static 'images/uni_logo.png' %}" alt="University Logo" class="logo">
-            <h1>{% block header_title %}IT Centre{% endblock %}</h1>
+            <div>
+                <img src="{% static 'images/uni_logo.png' %}" alt="University Logo" class="logo">
+                <h1>{% block header_title %}IT Centre{% endblock %}</h1>
+            </div>
+            <nav class="auth-nav">
+                <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ redirect_to }}">
+                    <select name="language" onchange="this.form.submit()"
+                        style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; cursor: pointer; margin-inline-end: 12px;">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% get_language_info_list for LANGUAGES as languages %}
+                        {% for language in languages %}
+
+                        <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %}selected{% endif %}>
+                            {{ language.name_local }} ({{ language.code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if user.is_authenticated %}
+                <span class="user-info">{% trans "Welcome" %}, {{ user.username }}</span>
+                <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary">{% trans "Logout" %}</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary">{% trans "Login" %}</a>
+                <a href="{% url 'signup' %}" class="btn btn-success">{% trans "Create Account" %}</a>
+                {% endif %}
+            </nav>
         </div>
     </header>
 

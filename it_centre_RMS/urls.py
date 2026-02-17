@@ -28,6 +28,7 @@ urlpatterns = [
     path("", home),
     path("admin/", admin.site.urls),
     path("records/", include("apps.records.urls")),
-    path("accounts/", include("django.contrib.auth.urls")),  # correct
+    path("accounts/", include("apps.accounts.urls")),  # For signup
+    path("accounts/", include("django.contrib.auth.urls")),  # For login/logout
     path("i18n/setlang/", set_language, name="set_language"),
 ]

@@ -137,3 +137,7 @@ USE_L10N = True
 MEDIA_ROOT = BASE_DIR
 MEDIA_URL = "/media/"
 
+# Authentication redirects
+LOGIN_REDIRECT_URL = "record_list"
+LOGOUT_REDIRECT_URL = "record_list"
+

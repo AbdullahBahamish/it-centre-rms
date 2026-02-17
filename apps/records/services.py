@@ -1,6 +1,6 @@
 # apps/records/services.py
 
-from typing import Iterable
+from typing import Iterable, Optional
 from django.contrib.auth import get_user_model
 from .models import Record
 
@@ -13,7 +13,7 @@ class RecordService:
         *,
         title: str,
         record_type: str,
-        created_by: User,
+        created_by: Optional[User],
         contributors: Iterable[User] = (),
         case_description: str = "",
         retention_until=None,

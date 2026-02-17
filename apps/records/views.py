@@ -1,11 +1,10 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 from .services import RecordService
-from .models import Record
-
-from django.shortcuts import get_object_or_404
+from .models import Record, RecordAttachment
 
 User = get_user_model()
 
@@ -18,7 +17,7 @@ def record_list(request):
     })
 
 
-@login_required
+# Remove @login_required decorator
 def record_create(request):
     if request.method == "POST":
         title = request.POST.get("title")
@@ -26,12 +25,23 @@ def record_create(request):
         case_description = request.POST.get("case_description", "")
         contributors_ids = request.POST.getlist("contributors")
 
+        # Validate required fields
+        if not title or not record_type:
+            users = User.objects.all()
+            return render(request, "records/record_form.html", {
+                "users": users,
+                "error": _("Title and Record Type are required fields.")
+            })
+
         contributors = User.objects.filter(id__in=contributors_ids)
+
+        # Set created_by to the logged-in user if authenticated, otherwise None
+        created_by = request.user if request.user.is_authenticated else None
 
         RecordService.create_record(
             title=title,
             record_type=record_type,
-            created_by=request.user,
+            created_by=created_by,  # Can now be None
             contributors=contributors,
             case_description=case_description,
         )
@@ -53,7 +63,7 @@ def record_detail(request, record_id):
     })
 
 
-@login_required
+# @login_required
 def upload_attachment(request, record_id):
     record = get_object_or_404(Record, id=record_id)
 
