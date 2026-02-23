@@ -22,5 +22,8 @@
     <p class="auth-footer">
         {% trans "Don't have an account?" %} <a href="{% url 'signup' %}">{% trans "Create one here" %}</a>
     </p>
+    <p class="auth-footer">
+        <a href="{% url 'recover_password' %}">{% trans "Forgot password?" %}</a>
+    </p>
 </div>
 {% endblock %}

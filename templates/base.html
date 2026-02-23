@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}IT Centre{% endblock %}</title>
+    <title>{% block title %}Record Management System{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
@@ -14,9 +14,14 @@
         <div class="header-content">
             <div>
                 <img src="{% static 'images/uni_logo.png' %}" alt="University Logo" class="logo">
-                <h1>{% block header_title %}IT Centre{% endblock %}</h1>
+                <h1>
+                    <a href="{% url 'record_list' %}" style="color: inherit; text-decoration: none;">
+                        Record Management System
+                    </a>
+                </h1>
             </div>
             <nav class="auth-nav">
+                <a href="{% url 'record_list' %}" class="btn btn-home">{% trans "Home" %}</a>
                 <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
                     {% csrf_token %}
                     <input name="next" type="hidden" value="{{ redirect_to }}">

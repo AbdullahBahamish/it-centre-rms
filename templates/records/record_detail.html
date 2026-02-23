@@ -7,6 +7,12 @@
 {% block content %}
 
 <div class="detail-container">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="error-message">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
     <div class="detail-header">
         <h2>{{ record.title }}</h2>
         <span class="status-badge {{ record.status }}">{{ record.get_status_display }}</span>
@@ -44,12 +50,18 @@
 
     <div class="attachments-section">
         <span class="meta-label">{% trans "Attachments" %}</span>
+        <form method="post" action="{% url 'upload_attachment' record.id %}" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            <input type="file" name="file" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
+            <button type="submit" class="primary-btn">{% trans "Upload File" %}</button>
+        </form>
+        <p class="upload-help">{% trans "Allowed formats" %}: {{ allowed_attachment_extensions_text }}. {% trans "Max size" %}: 10 MB.</p>
         {% if record.attachments.all %}
         <ul class="attachments-list">
             {% for attachment in record.attachments.all %}
             <li class="attachment-item">
                 <span style="margin-right: 8px;">📎</span>
-                <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.file.name }}</a>
+                <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.display_name }}</a>
                 <span style="margin-left: auto; color: #6b7280; font-size: 12px;">{{ attachment.uploaded_at|date:"M d,
                     Y" }}</span>
             </li>

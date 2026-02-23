@@ -6,6 +6,10 @@
 
 {% block content %}
 
+{% if error %}
+<div class="error-message">{{ error }}</div>
+{% endif %}
+
 <form method="post">
   {% csrf_token %}
 
@@ -14,12 +18,17 @@
 
     <p>
       <label>{% trans "Title" %} *</label><br>
-      <input type="text" name="title" required>
+      <input type="text" name="title" value="{{ values.title|default:'' }}" required>
     </p>
 
     <p>
       <label>{% trans "Record Type" %} *</label><br>
-      <input type="text" name="record_type" required>
+      <input type="text" name="record_type" value="{{ values.record_type|default:'' }}" required>
+    </p>
+
+    <p>
+      <label>{% trans "Retention Until" %}</label><br>
+      <input type="date" name="retention_until" value="{{ values.retention_until|default:'' }}">
     </p>
   </fieldset>
 
@@ -29,7 +38,7 @@
     <p>
       <select name="contributors" multiple size="5">
         {% for user in users %}
-        <option value="{{ user.id }}">{{ user.username }}</option>
+        <option value="{{ user.id }}" {% if user.id|stringformat:"s" in values.contributors_ids %}selected{% endif %}>{{ user.username }}</option>
         {% endfor %}
       </select>
     </p>
@@ -39,7 +48,7 @@
     <legend>{% trans "Description" %}</legend>
 
     <p>
-      <textarea name="case_description" rows="4"></textarea>
+      <textarea name="case_description" rows="4">{{ values.case_description|default:'' }}</textarea>
     </p>
   </fieldset>
 

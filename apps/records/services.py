@@ -7,6 +7,10 @@ from .models import Record
 User = get_user_model()
 
 
+def _normalize_text(value: str) -> str:
+    return " ".join((value or "").split()).strip()
+
+
 class RecordService:
     @staticmethod
     def create_record(
@@ -19,10 +23,10 @@ class RecordService:
         retention_until=None,
     ) -> Record:
         record = Record.objects.create(
-            title=title,
-            record_type=record_type,
+            title=_normalize_text(title),
+            record_type=_normalize_text(record_type),
             created_by=created_by,
-            case_description=case_description,
+            case_description=(case_description or "").strip(),
             retention_until=retention_until,
         )
 

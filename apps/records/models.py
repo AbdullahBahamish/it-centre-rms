@@ -1,5 +1,7 @@
 # apps/records/models.py
 
+from pathlib import Path
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -75,5 +77,9 @@ class RecordAttachment(models.Model):
         verbose_name = _("Record Attachment")
         verbose_name_plural = _("Record Attachments")
 
+    @property
+    def display_name(self) -> str:
+        return Path(self.file.name).name
+
     def __str__(self):
-        return self.file.name
+        return self.display_name

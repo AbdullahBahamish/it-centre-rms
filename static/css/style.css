@@ -96,6 +96,17 @@ header h1 {
     background: #059669;
 }
 
+.btn-home {
+    background: #eef2f7;
+    color: #1b3f73;
+    border: 1px solid #d6deea;
+}
+
+.btn-home:hover {
+    background: #e2eaf4;
+    border-color: #c5d3e5;
+}
+
 /* ===== Main Layout ===== */
 main {
     padding: 24px 32px;
@@ -272,6 +283,28 @@ th {
     list-style: none;
     padding: 0;
     margin: 12px 0 0 0;
+}
+
+.upload-form {
+    max-width: none;
+    margin: 10px 0 6px 0;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.upload-form input[type="file"] {
+    margin: 0;
+}
+
+.upload-help {
+    margin-top: 0;
+    color: #6b7280;
+    font-size: 13px;
 }
 
 .attachment-item {
