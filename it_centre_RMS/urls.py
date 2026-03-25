@@ -15,20 +15,25 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.conf.urls.i18n import set_language
 from django.shortcuts import redirect
+from django.templatetags.static import static
+from django.urls import include, path
 
 
 def home(request):
     return redirect("record_list")
 
 
+def favicon(request):
+    return redirect(static("images/favicon.ico"))
+
+
 urlpatterns = [
     path("", home),
+    path("favicon.ico", favicon),
+    path("", include("apps.core.urls")),
     path("admin/", admin.site.urls),
     path("records/", include("apps.records.urls")),
     path("accounts/", include("apps.accounts.urls")),  # For signup
     path("accounts/", include("django.contrib.auth.urls")),  # For login/logout
-    path("i18n/setlang/", set_language, name="set_language"),
 ]

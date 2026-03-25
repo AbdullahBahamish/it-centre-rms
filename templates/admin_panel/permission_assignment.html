@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Permission Assignment{% endblock %}
+
+{% block content %}
+<section class="panel admin-stack">
+    <div class="panel-header">
+        <div>
+            <h2>Permission Assignment</h2>
+            <p class="panel-subtitle">Update record and administration permissions for each role.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="{% if 'success' in message.tags %}success-message{% else %}error-message{% endif %}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    {% for permission in permissions %}
+    <form method="post" action="{% url 'admin_update_role_permissions' permission.role.id %}">
+        {% csrf_token %}
+        <fieldset>
+            <legend>{{ permission.role.name }}</legend>
+            <div class="checkbox-grid">
+                <label class="checkbox-row"><input type="checkbox" name="can_view_records" {% if permission.can_view_records %}checked{% endif %}> View records</label>
+                <label class="checkbox-row"><input type="checkbox" name="can_create_records" {% if permission.can_create_records %}checked{% endif %}> Create records</label>
+                <label class="checkbox-row"><input type="checkbox" name="can_edit_records" {% if permission.can_edit_records %}checked{% endif %}> Edit records</label>
+                <label class="checkbox-row"><input type="checkbox" name="can_delete_records" {% if permission.can_delete_records %}checked{% endif %}> Delete records</label>
+                <label class="checkbox-row"><input type="checkbox" name="can_manage_users" {% if permission.can_manage_users %}checked{% endif %}> Manage users</label>
+                <label class="checkbox-row"><input type="checkbox" name="can_assign_roles" {% if permission.can_assign_roles %}checked{% endif %}> Assign roles</label>
+            </div>
+        </fieldset>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Save Permissions</button>
+        </div>
+    </form>
+    {% empty %}
+    <p class="empty-state">No permissions configured.</p>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>Admin Dashboard</h2>
+            <p class="panel-subtitle">Monitor account activity and manage access from one control panel.</p>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="meta-label">Users</span>
+            <strong>{{ user_count }}</strong>
+        </div>
+        <div class="stat-card">
+            <span class="meta-label">Active Users</span>
+            <strong>{{ active_user_count }}</strong>
+        </div>
+        <div class="stat-card">
+            <span class="meta-label">Roles</span>
+            <strong>{{ role_count }}</strong>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="{% url 'admin_user_management' %}" class="btn btn-primary">User Management</a>
+        <a href="{% url 'admin_role_management' %}" class="btn btn-secondary">Role Management</a>
+        <a href="{% url 'admin_permission_assignment' %}" class="btn btn-secondary">Permission Assignment</a>
+    </div>
+</section>
+{% endblock %}

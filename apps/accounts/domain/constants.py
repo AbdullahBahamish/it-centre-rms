@@ -1,0 +1,32 @@
+ADMIN = "ADMIN"
+MANAGER = "MANAGER"
+STAFF = "STAFF"
+VIEWER = "VIEWER"
+
+ADMIN_RANK = 100
+MANAGER_RANK = 70
+STAFF_RANK = 40
+VIEWER_RANK = 10
+
+ROLE_NAMES = [ADMIN, MANAGER, STAFF, VIEWER]
+ROLE_RANKS = {
+    ADMIN: ADMIN_RANK,
+    MANAGER: MANAGER_RANK,
+    STAFF: STAFF_RANK,
+    VIEWER: VIEWER_RANK,
+}
+LEGACY_ROLE_MAP = {
+    "admin": ADMIN,
+    "manager": MANAGER,
+    "engineer": STAFF,
+    "employee": STAFF,
+    "other": VIEWER,
+    ADMIN: ADMIN,
+    MANAGER: MANAGER,
+    STAFF: STAFF,
+    VIEWER: VIEWER,
+}
+DEFAULT_USER_ROLE = VIEWER
+GENERIC_PASSWORD_RESET_MESSAGE = (
+    "If the account exists, password reset instructions have been sent."
+)

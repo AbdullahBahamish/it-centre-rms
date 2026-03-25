@@ -1,16 +1,15 @@
 {% extends "base.html" %}
-{% load i18n %}
 
-{% block title %}{% trans "Create Account" %} - IT Centre{% endblock %}
+{% block title %}Create Account - IT Centre{% endblock %}
 
 {% block content %}
 <div class="auth-container">
-    <h2>{% trans "Create Account" %}</h2>
+    <h2>Create Account</h2>
 
     {% if form.errors %}
     <div class="error-message">
-        <p>{% trans "Please correct the errors below:" %}</p>
-        <ul>
+        Please correct the errors below.
+        <ul class="error-list">
             {% for field, errors in form.errors.items %}
             {% for error in errors %}
             <li>{{ error }}</li>
@@ -20,14 +19,24 @@
     </div>
     {% endif %}
 
-    <form method="post" class="auth-form">
+    <form method="post" class="inline-form">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">{% trans "Create Account" %}</button>
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="form-row">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                <div class="form-help">{{ field.help_text }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-success">Create Account</button>
+        </div>
     </form>
 
-    <p class="auth-footer">
-        {% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Login here" %}</a>
-    </p>
+    <p class="auth-footer">Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
 </div>
 {% endblock %}

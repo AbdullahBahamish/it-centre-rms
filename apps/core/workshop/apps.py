@@ -1,5 +1,7 @@
-from django.apps import AppConfig 
- 
-class %app%Config(AppConfig): 
-    name = 'apps.%app%' 
-    verbose_name = '%app%' 
+from django.apps import AppConfig
+
+
+class WorkshopConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.core.workshop"
+    verbose_name = "Workshop"

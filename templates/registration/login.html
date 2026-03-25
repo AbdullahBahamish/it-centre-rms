@@ -1,29 +1,36 @@
 {% extends "base.html" %}
-{% load i18n %}
 
-{% block title %}{% trans "Login" %} - IT Centre{% endblock %}
+{% block title %}Log In - IT Centre{% endblock %}
 
 {% block content %}
 <div class="auth-container">
-    <h2>{% trans "Login" %}</h2>
+    <h2>Log In</h2>
 
     {% if form.errors %}
     <div class="error-message">
-        <p>{% trans "Invalid username or password. Please try again." %}</p>
+        Invalid username or password. Please try again.
     </div>
     {% endif %}
 
-    <form method="post" class="auth-form">
+    <form method="post" class="inline-form">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">{% trans "Login" %}</button>
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="form-row">
+                {{ field.label_tag }}
+                {{ field }}
+                {% for error in field.errors %}
+                <div class="error-message">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </div>
     </form>
 
-    <p class="auth-footer">
-        {% trans "Don't have an account?" %} <a href="{% url 'signup' %}">{% trans "Create one here" %}</a>
-    </p>
-    <p class="auth-footer">
-        <a href="{% url 'recover_password' %}">{% trans "Forgot password?" %}</a>
-    </p>
+    <p class="auth-footer">Do not have an account? <a href="{% url 'signup' %}">Create one here</a></p>
+    <p class="auth-footer"><a href="{% url 'recover_password' %}">Forgot password?</a></p>
 </div>
 {% endblock %}

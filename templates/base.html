@@ -1,64 +1,47 @@
-{% load static i18n %}
+{% load static access_control %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Record Management System{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IT Centre RMS{% endblock %}</title>
+    <link rel="icon" href="{% static 'images/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-
 <body>
-
-    <header>
+    <header class="site-header">
         <div class="header-content">
-            <div>
-                <img src="{% static 'images/uni_logo.png' %}" alt="University Logo" class="logo">
-                <h1>
-                    <a href="{% url 'record_list' %}" style="color: inherit; text-decoration: none;">
-                        Record Management System
-                    </a>
-                </h1>
-            </div>
+            <a href="{% if user.is_authenticated %}{% url 'record_list' %}{% else %}{% url 'login' %}{% endif %}" class="brand">
+                <img src="{% static 'images/uni_logo.png' %}" alt="University logo" class="logo">
+                <div class="brand-copy">
+                    <span class="brand-kicker">IT Centre</span>
+                    <h1>Record Management System</h1>
+                </div>
+            </a>
+
             <nav class="auth-nav">
-                <a href="{% url 'record_list' %}" class="btn btn-home">{% trans "Home" %}</a>
-                <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
-                    {% csrf_token %}
-                    <input name="next" type="hidden" value="{{ redirect_to }}">
-                    <select name="language" onchange="this.form.submit()"
-                        style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; cursor: pointer; margin-inline-end: 12px;">
-                        {% get_current_language as LANGUAGE_CODE %}
-                        {% get_available_languages as LANGUAGES %}
-                        {% get_language_info_list for LANGUAGES as languages %}
-                        {% for language in languages %}
-
-                        <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %}selected{% endif %}>
-                            {{ language.name_local }} ({{ language.code }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </form>
-
                 {% if user.is_authenticated %}
-                <span class="user-info">{% trans "Welcome" %}, {{ user.username }}</span>
-                <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+                <a href="{% url 'record_list' %}" class="btn btn-ghost">Dashboard</a>
+                <span class="user-info">Signed in as {{ user.username }}</span>
+                {% if user|can:"access_admin_panel" %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Admin Panel</a>
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}" class="inline-form">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-secondary">{% trans "Logout" %}</button>
+                    <button type="submit" class="btn btn-secondary">Log Out</button>
                 </form>
                 {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary">{% trans "Login" %}</a>
-                <a href="{% url 'signup' %}" class="btn btn-success">{% trans "Create Account" %}</a>
+                <a href="{% url 'login' %}" class="btn btn-primary">Log In</a>
+                <a href="{% url 'signup' %}" class="btn btn-success">Create Account</a>
                 {% endif %}
             </nav>
         </div>
     </header>
 
     {% block page_wrapper %}
-    <main>
+    <main class="page-shell">
         {% block content %}{% endblock %}
     </main>
     {% endblock %}
-
 </body>
-
 </html>

@@ -1,65 +1,132 @@
 {% extends "base.html" %}
-{% load i18n static %}
 
-{% block title %}{% trans "Create Record" %}{% endblock %}
-{% block header_title %}{% trans "Create Record" %}{% endblock %}
+{% block title %}{% if record %}Edit Record{% else %}Create Record{% endif %}{% endblock %}
 
 {% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>{% if record %}Edit Record{% else %}Create Record{% endif %}</h2>
+      <p class="panel-subtitle">Capture the essential details for each record in a consistent format.</p>
+    </div>
+  </div>
 
-{% if error %}
-<div class="error-message">{{ error }}</div>
-{% endif %}
+  {% if form.errors %}
+  <div class="error-message">
+    Please correct the errors below.
+    <ul class="error-list">
+      {% for field, errors in form.errors.items %}
+      {% for error in errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 
-<form method="post">
-  {% csrf_token %}
-
-  <fieldset>
-    <legend>{% trans "Basic Information" %}</legend>
-
-    <p>
-      <label>{% trans "Title" %} *</label><br>
-      <input type="text" name="title" value="{{ values.title|default:'' }}" required>
-    </p>
-
-    <p>
-      <label>{% trans "Record Type" %} *</label><br>
-      <input type="text" name="record_type" value="{{ values.record_type|default:'' }}" required>
-    </p>
-
-    <p>
-      <label>{% trans "Retention Until" %}</label><br>
-      <input type="date" name="retention_until" value="{{ values.retention_until|default:'' }}">
-    </p>
-  </fieldset>
-
-  <fieldset>
-    <legend>{% trans "Contributors" %}</legend>
-
-    <p>
-      <select name="contributors" multiple size="5">
-        {% for user in users %}
-        <option value="{{ user.id }}" {% if user.id|stringformat:"s" in values.contributors_ids %}selected{% endif %}>{{ user.username }}</option>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      {% for field in form %}
+      <div class="form-row">
+        {{ field.label_tag }}
+        {% if field.name == "contributors" %}
+        <div class="contributors-picker" data-field-id="{{ field.id_for_label }}">
+          <div id="contributors-container" class="contributors-multi-select" role="listbox" aria-multiselectable="true">
+            {% for user in field.field.queryset %}
+            <button
+              type="button"
+              class="contributors-option"
+              data-value="{{ user.id }}"
+              aria-pressed="false"
+            >
+              {{ user.username }}
+            </button>
+            {% endfor %}
+          </div>
+          <div class="contributors-native-select" hidden>
+            {{ field }}
+          </div>
+          <div id="selected-tags" class="contributors-tags" aria-live="polite"></div>
+        </div>
+        {% else %}
+        {{ field }}
+        {% endif %}
+        {% if field.help_text %}
+        <div class="form-help">{{ field.help_text }}</div>
+        {% endif %}
+        {% for error in field.errors %}
+        <div class="error-message">{{ error }}</div>
         {% endfor %}
-      </select>
-    </p>
-  </fieldset>
+      </div>
+      {% endfor %}
+    </div>
 
-  <fieldset>
-    <legend>{% trans "Description" %}</legend>
+    <div class="actions">
+      <button type="submit" class="primary-btn">{% if record %}Update Record{% else %}Save Record{% endif %}</button>
+      <a href="{% url 'record_list' %}" class="cancel">Cancel</a>
+    </div>
+  </form>
+</section>
 
-    <p>
-      <textarea name="case_description" rows="4">{{ values.case_description|default:'' }}</textarea>
-    </p>
-  </fieldset>
+<script>
+  (() => {
+    const picker = document.querySelector('.contributors-picker');
+    if (!picker) {
+      return;
+    }
 
-  <button type="submit" class="primary-btn">
-    {% trans "Save Record" %}
-  </button>
+    const options = picker.querySelectorAll('.contributors-option');
+    const select = picker.querySelector('select[multiple]');
+    const tagsContainer = picker.querySelector('.contributors-tags');
 
-  <a href="{% url 'record_list' %}" class="cancel">
-    {% trans "Cancel" %}
-  </a>
+    if (!select) {
+      return;
+    }
 
-</form>
+    const renderTags = () => {
+      tagsContainer.innerHTML = '';
 
+      [...select.options]
+        .filter((option) => option.selected)
+        .forEach((option) => {
+          const tag = document.createElement('div');
+          tag.className = 'contributors-tag';
+          tag.dataset.value = option.value;
+          tag.textContent = option.textContent;
+          tagsContainer.appendChild(tag);
+        });
+    };
+
+    const syncOptionState = () => {
+      const selectedValues = new Set(
+        [...select.options].filter((option) => option.selected).map((option) => option.value)
+      );
+
+      options.forEach((option) => {
+        const isSelected = selectedValues.has(option.dataset.value);
+        option.classList.toggle('selected', isSelected);
+        option.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      });
+
+      renderTags();
+    };
+
+    options.forEach((option) => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.value;
+        const nativeOption = [...select.options].find((item) => item.value === value);
+
+        if (!nativeOption) {
+          return;
+        }
+
+        nativeOption.selected = !nativeOption.selected;
+        syncOptionState();
+      });
+    });
+
+    syncOptionState();
+  })();
+</script>
 {% endblock %}

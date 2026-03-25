@@ -1,43 +1,41 @@
 {% extends "base.html" %}
-{% load i18n %}
-
-{% block title %}{% trans "Record Registry" %}{% endblock %}
-{% block header_title %}{% trans "Record Registry" %}{% endblock %}
+{% block title %}Record Registry{% endblock %}
 
 {% block content %}
-<div class="top-bar">
-  <a href="{% url 'record_create' %}" class="primary-btn">
-    {% trans "+ Create New Record" %}
-  </a>
-</div>
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h2>Record Registry</h2>
+      <p class="panel-subtitle">Browse, review, and manage all IT centre records from a single workspace.</p>
+    </div>
+    {% if can_create_records %}
+    <a href="{% url 'record_create' %}" class="primary-btn">Create New Record</a>
+    {% endif %}
+  </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>{% trans "Title" %}</th>
-      <th>{% trans "Record Type" %}</th>
-      <th>{% trans "Status" %}</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for record in records %}
-    <tr>
-      <td>
-        <a href="{% url 'record_detail' record.id %}">
-          {{ record.title }}
-        </a>
-      </td>
-      <td>{{ record.record_type }}</td>
-      <td>{{ record.status|capfirst }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="3" align="center">
-        <em>{% trans "No records have been created yet." %}</em>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Record Type</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td><a href="{% url 'record_detail' record.id %}" class="record-link">{{ record.title }}</a></td>
+          <td>{{ record.record_type }}</td>
+          <td><span class="status-badge {{ record.status }}">{{ record.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="empty-state">No records have been created yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

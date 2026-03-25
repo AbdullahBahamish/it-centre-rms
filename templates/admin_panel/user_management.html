@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2>User Management</h2>
+            <p class="panel-subtitle">Assign roles and manage account status for system users.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="{% if 'success' in message.tags %}success-message{% else %}error-message{% endif %}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for managed_user in users %}
+                <tr>
+                    <td>{{ managed_user.username }}</td>
+                    <td>{{ managed_user.email|default:"-" }}</td>
+                    <td>{% if managed_user.userprofile and managed_user.userprofile.role %}{{ managed_user.userprofile.role.name }}{% else %}Unassigned{% endif %}</td>
+                    <td>{% if managed_user.is_active %}<span class="status-badge active">Active</span>{% else %}<span class="status-badge archived">Inactive</span>{% endif %}</td>
+                    <td>
+                        <div class="table-actions">
+                            {% if can_assign_roles and managed_user.id != request.user.id %}
+                            <form method="post" action="{% url 'admin_assign_user_role' managed_user.id %}" class="inline-form">
+                                {% csrf_token %}
+                                <div class="table-actions">
+                                    <select name="role_id">
+                                        {% for role in roles %}
+                                        <option value="{{ role.id }}" {% if managed_user.userprofile.role_id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-secondary">Assign Role</button>
+                                </div>
+                            </form>
+                            {% endif %}
+                            {% if can_manage_users and managed_user.is_active and managed_user.id != request.user.id %}
+                            <form method="post" action="{% url 'admin_deactivate_user' managed_user.id %}" class="inline-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Deactivate</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
