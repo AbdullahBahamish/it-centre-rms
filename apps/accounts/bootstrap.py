@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 ROLE_PERMISSION_MATRIX = {
     ADMIN: {
-        "description": "Full system administration access.",
+        "description": "Full administrative access across records and user management.",
         "can_view_records": True,
         "can_create_records": True,
         "can_edit_records": True,
@@ -27,7 +27,7 @@ ROLE_PERMISSION_MATRIX = {
         "can_assign_roles": True,
     },
     MANAGER: {
-        "description": "Operational management with limited user administration.",
+        "description": "Operational oversight with limited user administration privileges.",
         "can_view_records": True,
         "can_create_records": True,
         "can_edit_records": True,
@@ -36,7 +36,7 @@ ROLE_PERMISSION_MATRIX = {
         "can_assign_roles": False,
     },
     STAFF: {
-        "description": "Record operators with CRUD access.",
+        "description": "Record operations access, including creation, revision, and deletion.",
         "can_view_records": True,
         "can_create_records": True,
         "can_edit_records": True,
@@ -45,7 +45,7 @@ ROLE_PERMISSION_MATRIX = {
         "can_assign_roles": False,
     },
     VIEWER: {
-        "description": "Read-only access to records.",
+        "description": "Read-only access to records and attachments.",
         "can_view_records": True,
         "can_create_records": False,
         "can_edit_records": False,

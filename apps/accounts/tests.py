@@ -10,7 +10,7 @@ from apps.accounts.bootstrap import bootstrap_roles_and_permissions
 from apps.accounts.models import Permission, Role, UserProfile
 from apps.accounts.services import RoleAssignmentService
 from apps.accounts.services.role_permissions import RolePermissionService
-from apps.accounts.services.user_management import UserManagementService
+from apps.accounts.services.user_management import UserLifecycleService, UserManagementService
 from apps.accounts.invariants import validate_runtime_invariants
 from apps.core.models import SystemSettings
 from apps.core.services import AccessService
@@ -260,6 +260,28 @@ class AdminAuthorityTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_activation_of_higher_or_equal_rank_fails(self):
+        self.admin.is_active = False
+        self.admin.save(update_fields=["is_active"])
+        self.client.force_login(self.manager)
+
+        response = self.client.post(reverse("admin_activate_user", args=[self.admin.id]))
+
+        self.assertEqual(response.status_code, 404)
+        self.admin.refresh_from_db()
+        self.assertFalse(self.admin.is_active)
+
+    def test_admin_can_activate_lower_rank_user(self):
+        self.target.is_active = False
+        self.target.save(update_fields=["is_active"])
+        self.client.force_login(self.admin)
+
+        response = self.client.post(reverse("admin_activate_user", args=[self.target.id]))
+
+        self.assertEqual(response.status_code, 302)
+        self.target.refresh_from_db()
+        self.assertTrue(self.target.is_active)
+
     def test_role_assignment_returns_safe_denial_on_exception(self):
         with patch("apps.accounts.services.role_assignment.Role.objects.only", side_effect=RuntimeError("db error")):
             result = RoleAssignmentService.assign(
@@ -353,6 +375,22 @@ class AdminAuthorityTests(TestCase):
 
         self.assertTrue(result.success)
         self.assertEqual(result.error, "noop")
+
+    def test_activate_active_user_is_noop(self):
+        result = UserLifecycleService.activate(actor=self.admin, target_id=self.target.id)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.error, "noop")
+
+    def test_activation_retries_deadlock(self):
+        with patch(
+            "apps.accounts.services.user_management.UserLifecycleService._set_active_once",
+            side_effect=[OperationalError("deadlock"), MagicMock(success=True, error=None, payload=self.target)],
+        ) as mocked:
+            result = UserLifecycleService.activate(actor=self.admin, target_id=self.target.id)
+
+        self.assertTrue(result.success)
+        self.assertEqual(mocked.call_count, 2)
 
     def test_permission_update_retries_deadlock(self):
         form = MagicMock()

@@ -1,9 +1,6 @@
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
-
-from apps.core.rbac import validate_role_codes
 
 
 SYSTEM_SETTINGS_CACHE_KEY = "access-policy:system-settings"
@@ -15,16 +12,6 @@ class SystemSettings(models.Model):
     allow_anonymous_create = models.BooleanField(default=False)
     allow_anonymous_update = models.BooleanField(default=False)
     allow_anonymous_delete = models.BooleanField(default=False)
-    allowed_roles_for_repo_creation = models.JSONField(
-        default=list,
-        blank=True,
-        validators=[validate_role_codes],
-    )
-    allowed_users_for_repo_creation = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        related_name="repo_creation_settings",
-    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

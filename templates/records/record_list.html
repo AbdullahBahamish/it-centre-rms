@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Record Registry{% endblock %}
+{% block title %}Records{% endblock %}
 
 {% block content %}
 <section class="panel">
   <div class="panel-header">
     <div>
-      <h2>Record Registry</h2>
-      <p class="panel-subtitle">Browse, review, and manage all IT centre records from a single workspace.</p>
+      <h2>Records</h2>
+      <p class="panel-subtitle">Review IT Centre maintenance jobs and linked equipment assets from a single workspace.</p>
     </div>
     {% if can_create_records %}
-    <a href="{% url 'record_create' %}" class="primary-btn">Create New Record</a>
+    <a href="{% url 'record_create' %}" class="primary-btn">Create Maintenance Record</a>
     {% endif %}
   </div>
 
@@ -18,7 +18,8 @@
       <thead>
         <tr>
           <th>Title</th>
-          <th>Record Type</th>
+          <th>Asset</th>
+          <th>Priority</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -26,8 +27,9 @@
         {% for record in records %}
         <tr>
           <td><a href="{% url 'record_detail' record.id %}" class="record-link">{{ record.title }}</a></td>
-          <td>{{ record.record_type }}</td>
-          <td><span class="status-badge {{ record.status }}">{{ record.get_status_display }}</span></td>
+          <td>{% if record.asset %}{{ record.asset.asset_tag }}{% else %}-{% endif %}</td>
+          <td>{% if record.priority %}{{ record.get_priority_display }}{% else %}-{% endif %}</td>
+          <td><span class="status-badge {{ record.maintenance_status|default:record.status }}">{{ record.get_maintenance_status_display|default:record.get_status_display }}</span></td>
         </tr>
         {% empty %}
         <tr>

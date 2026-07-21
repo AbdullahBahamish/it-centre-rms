@@ -24,6 +24,60 @@ from apps.records.application.use_cases import (
 from apps.records.presentation.forms import AttachmentUploadForm, RecordForm
 
 
+RECORD_FORM_PAYLOAD_FIELDS = (
+    "asset_tag",
+    "device_type",
+    "manufacturer",
+    "model",
+    "serial_number",
+    "operating_system",
+    "system_architecture",
+    "cpu",
+    "ram",
+    "storage",
+    "location",
+    "department",
+    "room",
+    "device_owner",
+    "maintenance_type",
+    "problem_category",
+    "priority",
+    "reported_by",
+    "assigned_technician",
+    "assistant_technician",
+    "support_team",
+    "date_received",
+    "expected_completion_date",
+    "maintenance_status",
+    "diagnosis",
+    "repair_performed",
+    "software_installed",
+    "drivers_installed",
+    "parts_replaced",
+    "bios_updated",
+    "firmware_updated",
+    "testing_results",
+    "remarks",
+    "completed_by",
+    "completion_date",
+    "final_device_status",
+)
+
+
+def _record_form_payload(form):
+    payload = {
+        "title": form.cleaned_data["title"],
+        "record_type_name": form.cleaned_data["record_type"].name,
+        "category_id": form.cleaned_data["category"].id,
+        "retention_until": form.cleaned_data["retention_until"],
+        "contributor_ids": list(form.cleaned_data["contributors"].values_list("id", flat=True)),
+        "allow_all_contributors": form.cleaned_data["allow_all_contributors"],
+        "case_description": form.cleaned_data["case_description"],
+    }
+    payload.update({field: form.cleaned_data.get(field) for field in RECORD_FORM_PAYLOAD_FIELDS})
+    return payload
+
+
 def record_list(request):
     context_result = RecordFormContextUseCase().execute(user=request.user)
     records_result = ListRecordsUseCase().execute(user=request.user)
@@ -49,18 +103,15 @@ def record_create(request):
         raise Http404
     context_data = context_result.payload
     if request.method == "POST":
-        form = RecordForm(request.POST, categories=context_data["categories"], users=context_data["users"])
+        form = RecordForm(
+            request.POST,
+            categories=context_data["categories"],
+            record_types=context_data["record_types"],
+        )
         if form.is_valid():
             result = CreateRecordUseCase().execute(
                 user=request.user,
-                payload={
-                    "title": form.cleaned_data["title"],
-                    "record_type": form.cleaned_data["record_type"],
-                    "category_id": form.cleaned_data["category"].id,
-                    "retention_until": form.cleaned_data["retention_until"],
-                    "contributor_ids": list(form.cleaned_data["contributors"].values_list("id", flat=True)),
-                    "case_description": form.cleaned_data["case_description"],
-                },
+                payload=_record_form_payload(form),
             )
             if result.success:
                 return redirect("record_detail", record_id=result.payload.id)
@@ -69,7 +120,7 @@ def record_create(request):
             else:
                 raise Http404
     else:
-        form = RecordForm(categories=context_data["categories"], users=context_data["users"])
+        form = RecordForm(categories=context_data["categories"], record_types=context_data["record_types"])
     return render(request, "records/record_form.html", {"form": form, "record": None})
 
 
@@ -103,27 +154,67 @@ def record_update(request, record_id):
 
     initial = {
         "title": record.title,
-        "record_type": record.record_type,
+        "record_type": record.record_type_id,
         "category": record.category_id,
         "retention_until": record.retention_until,
+        "allow_all_contributors": record.allow_all_contributors,
         "contributors": record.contributors.all(),
         "case_description": record.case_description,
+        "maintenance_type": record.maintenance_type,
+        "problem_category": record.problem_category,
+        "priority": record.priority,
+        "reported_by": record.reported_by,
+        "assigned_technician": record.assigned_technician_id,
+        "assistant_technician": record.assistant_technician_id,
+        "support_team": record.support_team,
+        "date_received": record.date_received,
+        "expected_completion_date": record.expected_completion_date,
+        "maintenance_status": record.maintenance_status,
+        "diagnosis": record.diagnosis,
+        "repair_performed": record.repair_performed,
+        "software_installed": record.software_installed,
+        "drivers_installed": record.drivers_installed,
+        "parts_replaced": record.parts_replaced,
+        "bios_updated": record.bios_updated,
+        "firmware_updated": record.firmware_updated,
+        "testing_results": record.testing_results,
+        "remarks": record.remarks,
+        "completed_by": record.completed_by_id,
+        "completion_date": record.completion_date,
+        "final_device_status": record.final_device_status,
     }
+    if record.asset:
+        initial.update(
+            {
+                "asset_tag": record.asset.asset_tag,
+                "device_type": record.asset.device_type,
+                "manufacturer": record.asset.manufacturer,
+                "model": record.asset.model,
+                "serial_number": record.asset.serial_number,
+                "operating_system": record.asset.operating_system,
+                "system_architecture": record.asset.system_architecture,
+                "cpu": record.asset.cpu,
+                "ram": record.asset.ram,
+                "storage": record.asset.storage,
+                "location": record.asset.location,
+                "department": record.asset.department,
+                "room": record.asset.room,
+                "device_owner": record.asset.device_owner,
+            }
+        )
 
     if request.method == "POST":
-        form = RecordForm(request.POST, categories=context_data["categories"], users=context_data["users"])
+        form = RecordForm(
+            request.POST,
+            categories=context_data["categories"],
+            record_types=context_data["record_types"],
+            record=record,
+        )
         if form.is_valid():
             result = UpdateRecordUseCase().execute(
                 user=request.user,
                 record_id=record_id,
-                payload={
-                    "title": form.cleaned_data["title"],
-                    "record_type": form.cleaned_data["record_type"],
-                    "category_id": form.cleaned_data["category"].id,
-                    "retention_until": form.cleaned_data["retention_until"],
-                    "contributor_ids": list(form.cleaned_data["contributors"].values_list("id", flat=True)),
-                    "case_description": form.cleaned_data["case_description"],
-                },
+                payload=_record_form_payload(form),
             )
             if result.success:
                 return redirect("record_detail", record_id=result.payload.id)
@@ -132,7 +223,12 @@ def record_update(request, record_id):
             else:
                 raise Http404
     else:
-        form = RecordForm(initial=initial, categories=context_data["categories"], users=context_data["users"])
+        form = RecordForm(
+            initial=initial,
+            categories=context_data["categories"],
+            record_types=context_data["record_types"],
+            record=record,
+        )
 
     return render(request, "records/record_form.html", {"form": form, "record": record})
 

@@ -10,6 +10,13 @@ class Role(models.Model):
     STAFF = STAFF
     VIEWER = VIEWER
 
+    DISPLAY_NAMES = {
+        ADMIN: "Administrator",
+        MANAGER: "Manager",
+        STAFF: "Staff",
+        VIEWER: "Viewer",
+    }
+
     name = models.CharField(max_length=50, unique=True)
     rank = models.IntegerField(unique=True)
     description = models.TextField(blank=True)
@@ -18,7 +25,11 @@ class Role(models.Model):
         ordering = ("name",)
 
     def __str__(self):
-        return self.name
+        return self.display_name
+
+    @property
+    def display_name(self):
+        return self.DISPLAY_NAMES.get(self.name, self.name.replace("_", " ").title())
 
     def outranks(self, other) -> bool:
         if other is None:
@@ -48,7 +59,7 @@ class RolePermission(models.Model):
         ordering = ("role__name",)
 
     def __str__(self):
-        return f"{self.role.name} permissions"
+        return f"{self.role.display_name} permissions"
 
 
 class Permission(RolePermission):
@@ -81,5 +92,5 @@ class UserProfile(models.Model):
         ordering = ("user__username",)
 
     def __str__(self) -> str:
-        role_name = self.role.name if self.role else "UNASSIGNED"
+        role_name = self.role.display_name if self.role else "Unassigned"
         return f"{self.user.username} ({self.phone_number}) - {role_name}"

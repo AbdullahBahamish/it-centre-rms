@@ -6,7 +6,12 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import redirect, render
 
-from apps.accounts.services import RoleAssignmentService, RolePermissionService, UserManagementService
+from apps.accounts.services import (
+    RoleAssignmentService,
+    RolePermissionService,
+    activate_user as activate_user_service,
+    deactivate_user as deactivate_user_service,
+)
 from apps.accounts.models import Role, RolePermission
 from apps.core.permissions import admin_required
 from apps.core.services import AccessService
@@ -91,12 +96,24 @@ def assign_user_role(request, user_id):
 
 
 @login_required
+def activate_user(request, user_id):
+    if request.method != "POST":
+        return redirect("admin_user_management")
+    result = activate_user_service(actor=request.user, target=User.objects.filter(id=user_id).first())
+    if not result.success:
+        raise Http404
+    messages.success(request, "User activated successfully.")
+    return redirect("admin_user_management")
+
+
+@login_required
 def deactivate_user(request, user_id):
-    if request.method == "POST":
-        result = UserManagementService.deactivate(actor=request.user, target_id=user_id)
-        if not result.success:
-            raise Http404
-        messages.success(request, "User deactivated successfully.")
+    if request.method != "POST":
+        return redirect("admin_user_management")
+    result = deactivate_user_service(actor=request.user, target=User.objects.filter(id=user_id).first())
+    if not result.success:
+        raise Http404
+    messages.success(request, "User deactivated successfully.")
     return redirect("admin_user_management")
 
 

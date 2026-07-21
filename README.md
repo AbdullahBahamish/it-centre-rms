@@ -1,41 +1,49 @@
-# it-centre-rms
+# IT Centre Record Management System
 
-Internal Record Management System (RMS) for IT Centre operations, shaped around structured handling of records rather than generic storage solutions. The system emphasises clarity, order, and controlled data flow across all components.
+The IT Centre Record Management System (RMS) provides structured control over institutional records, contributor assignments, attachments, and administrative access.
 
 ## Overview
 
-A deliberately structured environment for managing institutional records, where documents, contributors, and related artefacts are interconnected instead of loosely stored. The design avoids both over-engineering and ad hoc organisation, favouring a disciplined and predictable model.
+This application supports disciplined record administration for internal IT Centre operations. Records are classified, access-controlled, and traceable, with supporting files and contributor assignments managed within the same operational workflow.
 
-## Core Functionality
+## Core Capabilities
 
-* **Document Archiving**
-  Hierarchical storage with clear categorisation, enabling consistent retrieval without fragmentation or ambiguity.
+* **Record Classification**
+  Records are organised by category and record type to support consistent retrieval and governance.
 
-* **Contributor Tracking**
-  Explicit attribution of authorship and modifications, preserving accountability and traceability across all records.
+* **Contributor Assignment**
+  Contributors are associated with records through controlled selection rules that preserve accountability.
 
-* **File Attachments**
-  Contextual linkage of supplementary files to primary records, maintaining coherence between data and its supporting materials.
+* **Attachment Management**
+  Supporting files are linked directly to their parent record to maintain operational context.
 
-* **Structured Backups**
-  Systematic backup strategy designed for resilience, ensuring data integrity and reliable restoration under failure scenarios.
+* **Administrative Access Control**
+  Role-based permissions govern record actions, user administration, and role assignments.
 
-## System Characteristics
+## Design Principles
 
-* Deterministic data organisation rather than opportunistic storage
-* Explicit relationships between entities, eliminating hidden dependencies
-* Minimalistic structure with no redundant abstractions
-* Scalable foundation without compromising consistency
+* Consistent terminology across records, roles, and administrative actions
+* Explicit relationships between records, contributors, and attachments
+* Controlled workflows instead of ad hoc data handling
+* Clear operational boundaries for access and responsibility
 
-## Design Orientation
+## Operational Context
 
-The system adheres to a controlled architectural mindset:
+The system is intended for internal IT Centre use where records must be maintained with clear ownership, controlled access, and predictable administrative processes.
 
-* Structure is enforced, not optional
-* Simplicity is intentional, not a limitation
-* Consistency overrides convenience
-* Traceability is preserved at every level
+## Local Setup
 
-## Context of Use
+1. Create a virtual environment and install dependencies:
 
-Intended for internal IT Centre environments where disciplined record handling is required. The system forms a stable base for extending into role-based access control, administrative hierarchies, and more advanced operational workflows without structural rework.
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Copy `.env.example` to `.env` and set `DJANGO_SECRET_KEY`.
+
+3. Apply migrations and run the development server:
+
+   ```bash
+   python manage.py migrate
+   python manage.py runserver
+   ```

@@ -7,7 +7,9 @@ from apps.core.security import ServiceResult, log_security_event, log_security_f
 from apps.records.infrastructure.repositories import (
     AttachmentRepository,
     CategoryRepository,
+    ITAssetRepository,
     RecordRepository,
+    RecordTypeRepository,
     UserRepository,
 )
 from apps.records.pdf import generate_record_pdf
@@ -15,6 +17,57 @@ from apps.records.pdf import generate_record_pdf
 
 def _normalize_text(value: str):
     return " ".join((value or "").split()).strip()
+
+
+DEVICE_FIELDS = (
+    "asset_tag",
+    "device_type",
+    "manufacturer",
+    "model",
+    "serial_number",
+    "operating_system",
+    "system_architecture",
+    "cpu",
+    "ram",
+    "storage",
+    "location",
+    "department",
+    "room",
+    "device_owner",
+)
+
+MAINTENANCE_FIELDS = (
+    "maintenance_type",
+    "problem_category",
+    "priority",
+    "reported_by",
+    "assigned_technician",
+    "assistant_technician",
+    "support_team",
+    "date_received",
+    "expected_completion_date",
+    "maintenance_status",
+    "diagnosis",
+    "repair_performed",
+    "software_installed",
+    "drivers_installed",
+    "parts_replaced",
+    "bios_updated",
+    "firmware_updated",
+    "testing_results",
+    "remarks",
+    "completed_by",
+    "completion_date",
+    "final_device_status",
+)
+
+
+def _asset_payload(payload):
+    return {field: payload.get(field) for field in DEVICE_FIELDS}
+
+
+def _maintenance_payload(payload):
+    return {field: payload.get(field) for field in MAINTENANCE_FIELDS}
 
 class ListRecordsUseCase:
     def execute(self, *, user):
@@ -38,7 +91,7 @@ class RecordFormContextUseCase:
                 success=True,
                 payload={
                     "categories": categories,
-                    "users": UserRepository().all_users(),
+                    "record_types": list(RecordTypeRepository().all_record_types()),
                     "record": record,
                 },
             )
@@ -59,20 +112,29 @@ class CreateRecordUseCase:
                 log_security_event(action="create_record", actor=user, target=getattr(category, "pk", None), result="denied", reason="permission_denied")
                 return ServiceResult(success=False, error="permission_denied")
 
+            record_type = RecordTypeRepository().get_by_name(payload.get("record_type_name"))
+            if not record_type:
+                return ServiceResult(success=False, error="not_found", status_code=404)
+
             contributors = self._validated_contributors(
                 category=category,
                 contributor_ids=payload.get("contributor_ids", []),
+                allow_all_contributors=payload.get("allow_all_contributors", False),
             )
             if not contributors.success:
                 return contributors
 
+            asset = ITAssetRepository().upsert_from_payload(_asset_payload(payload))
             record = RecordRepository().create(
                 title=_normalize_text(payload.get("title", "")),
-                record_type=_normalize_text(payload.get("record_type", "")),
+                record_type=record_type,
                 category=category,
                 created_by=user if getattr(user, "is_authenticated", False) else None,
+                asset=asset,
                 case_description=(payload.get("case_description") or "").strip(),
                 retention_until=payload.get("retention_until"),
+                allow_all_contributors=payload.get("allow_all_contributors", False),
+                **_maintenance_payload(payload),
             )
             RecordRepository().set_contributors(record=record, contributors=contributors.payload)
             generate_record_pdf(record, record.created_at)
@@ -84,10 +146,13 @@ class CreateRecordUseCase:
             return ServiceResult(success=False, error="permission_denied")
 
     @staticmethod
-    def _validated_contributors(*, category, contributor_ids):
+    def _validated_contributors(*, category, contributor_ids, allow_all_contributors=False):
         try:
             contributor_ids = [value for value in (contributor_ids or []) if str(value).isdigit()]
             contributors = list(UserRepository().users_by_ids(contributor_ids))
+            if allow_all_contributors:
+                return ServiceResult(success=True, payload=contributors)
+
             invalid = [user.pk for user in contributors if not AccessService.can(user, "access_category", category)]
             if invalid:
                 return ServiceResult(success=False, error="invalid_contributors")
@@ -121,20 +186,29 @@ class UpdateRecordUseCase:
             if not category or not AccessService.can(user, "access_category", category):
                 return ServiceResult(success=False, error="not_found", status_code=404)
 
+            record_type = RecordTypeRepository().get_by_name(payload.get("record_type_name"))
+            if not record_type:
+                return ServiceResult(success=False, error="not_found", status_code=404)
+
             contributors = CreateRecordUseCase._validated_contributors(
                 category=category,
                 contributor_ids=payload.get("contributor_ids", []),
+                allow_all_contributors=payload.get("allow_all_contributors", False),
             )
             if not contributors.success:
                 return contributors
 
+            asset = ITAssetRepository().upsert_from_payload(_asset_payload(payload))
             record = RecordRepository().update(
                 record=record,
                 title=_normalize_text(payload.get("title", "")),
-                record_type=_normalize_text(payload.get("record_type", "")),
+                record_type=record_type,
                 category=category,
+                asset=asset,
                 case_description=(payload.get("case_description") or "").strip(),
                 retention_until=payload.get("retention_until"),
+                allow_all_contributors=payload.get("allow_all_contributors", False),
+                **_maintenance_payload(payload),
             )
             RecordRepository().set_contributors(record=record, contributors=contributors.payload)
             generate_record_pdf(record)

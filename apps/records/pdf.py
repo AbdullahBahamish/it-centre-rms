@@ -34,15 +34,30 @@ def _escape_pdf_text(value):
 def render_record_pdf_bytes(record):
     created_text = timezone.localtime(record.created_at).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     lines = [
-        "Record Management System",
+        "IT Centre Maintenance Record",
         f"Title: {record.title}",
         f"Type: {record.record_type}",
         f"Category: {record.category.name}",
-        f"Status: {record.status}",
+        f"Maintenance Status: {record.get_maintenance_status_display() if record.maintenance_status else '-'}",
+        f"Priority: {record.get_priority_display() if record.priority else '-'}",
         f"Created At: {created_text}",
         "",
-        "Description:",
+        "Asset:",
+        f"Asset Tag: {record.asset.asset_tag if record.asset else '-'}",
+        f"Device: {record.asset.get_device_type_display() if record.asset else '-'}",
+        f"Serial Number: {record.asset.serial_number if record.asset else '-'}",
+        "",
+        "Problem Description:",
         record.case_description or "-",
+        "",
+        "Diagnosis:",
+        record.diagnosis or "-",
+        "",
+        "Repair Performed:",
+        record.repair_performed or "-",
+        "",
+        "Testing Results:",
+        record.testing_results or "-",
     ]
     text_ops = ["BT", "/F1 12 Tf", "50 780 Td", "14 TL"]
     for line in lines:

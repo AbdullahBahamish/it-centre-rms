@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Create Account - IT Centre{% endblock %}
+{% block title %}Register Account - IT Centre{% endblock %}
 
 {% block content %}
 <div class="auth-container">
-    <h2>Create Account</h2>
+    <h2>Register Account</h2>
 
     {% if form.errors %}
     <div class="error-message">
@@ -33,10 +33,10 @@
             {% endfor %}
         </div>
         <div class="actions">
-            <button type="submit" class="btn btn-success">Create Account</button>
+            <button type="submit" class="btn btn-success">Register Account</button>
         </div>
     </form>
 
-    <p class="auth-footer">Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+    <p class="auth-footer">Already have an account? <a href="{% url 'login' %}">Sign in here</a></p>
 </div>
 {% endblock %}

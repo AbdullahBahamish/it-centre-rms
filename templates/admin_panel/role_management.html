@@ -7,7 +7,7 @@
     <div class="panel-header">
         <div>
             <h2>Role Management</h2>
-            <p class="panel-subtitle">Review the roles available in the system and their purpose.</p>
+            <p class="panel-subtitle">Review the roles available in the system and their responsibilities.</p>
         </div>
     </div>
 
@@ -22,7 +22,7 @@
             <tbody>
                 {% for role in roles %}
                 <tr>
-                    <td>{{ role.name }}</td>
+                    <td>{{ role.display_name }}</td>
                     <td>{{ role.description|default:"-" }}</td>
                 </tr>
                 {% empty %}

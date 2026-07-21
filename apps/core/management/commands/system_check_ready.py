@@ -96,6 +96,15 @@ class Command(BaseCommand):
                 "can_manage_users",
                 "can_assign_roles",
             },
+            "records_recordtype": {"name", "created_at", "updated_at"},
+            "records_record": {
+                "id",
+                "title",
+                "record_type_id",
+                "category_id",
+                "allow_all_contributors",
+                "created_by_id",
+            },
         }
 
         try:

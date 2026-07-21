@@ -11,58 +11,83 @@
 
     <div class="detail-header">
         <div>
-            <a href="{% url 'record_list' %}" class="back-link">Back to Registry</a>
+            <a href="{% url 'record_list' %}" class="back-link">Back to Records</a>
             <h2>{{ record.title }}</h2>
         </div>
-        <span class="status-badge {{ record.status }}">{{ record.get_status_display }}</span>
+        <span class="status-badge {{ record.maintenance_status|default:record.status }}">{{ record.get_maintenance_status_display|default:record.get_status_display }}</span>
     </div>
 
     <div class="record-meta">
         <div class="meta-item">
-            <span class="meta-label">Record Type</span>
-            <span class="meta-value">{{ record.record_type }}</span>
+            <span class="meta-label">Asset Tag</span>
+            <span class="meta-value">{% if record.asset %}{{ record.asset.asset_tag }}{% else %}-{% endif %}</span>
         </div>
         <div class="meta-item">
-            <span class="meta-label">Category</span>
-            <span class="meta-value">{{ record.category.name }}</span>
+            <span class="meta-label">Device Type</span>
+            <span class="meta-value">{% if record.asset %}{{ record.asset.get_device_type_display }}{% else %}-{% endif %}</span>
         </div>
         <div class="meta-item">
-            <span class="meta-label">Created By</span>
-            <span class="meta-value">
-                {% if record.created_by %}
-                {{ record.created_by.username }}
-                {% else %}
-                <em>Anonymous</em>
-                {% endif %}
-            </span>
+            <span class="meta-label">Priority</span>
+            <span class="meta-value">{% if record.priority %}{{ record.get_priority_display }}{% else %}-{% endif %}</span>
         </div>
         <div class="meta-item">
-            <span class="meta-label">Date Created</span>
-            <span class="meta-value">{{ record.created_at|date:"M d, Y" }}</span>
+            <span class="meta-label">Assigned Technician</span>
+            <span class="meta-value">{% if record.assigned_technician %}{{ record.assigned_technician.username }}{% else %}-{% endif %}</span>
         </div>
     </div>
 
-    {% if record.case_description %}
+    {% if record.asset %}
     <div class="description-section">
-        <span class="meta-label">Description</span>
-        <div class="description-body">{{ record.case_description|linebreaks }}</div>
+        <span class="meta-label">Device Information</span>
+        <div class="record-meta">
+            <div class="meta-item"><span class="meta-label">Manufacturer</span><span class="meta-value">{{ record.asset.get_manufacturer_display|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Model</span><span class="meta-value">{{ record.asset.model|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Serial Number</span><span class="meta-value">{{ record.asset.serial_number|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Operating System</span><span class="meta-value">{{ record.asset.get_operating_system_display|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Architecture</span><span class="meta-value">{{ record.asset.system_architecture|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Location</span><span class="meta-value">{{ record.asset.location|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Department</span><span class="meta-value">{{ record.asset.department|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Room</span><span class="meta-value">{{ record.asset.room|default:"-" }}</span></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="description-section">
+        <span class="meta-label">Maintenance Details</span>
+        <div class="record-meta">
+            <div class="meta-item"><span class="meta-label">Maintenance Type</span><span class="meta-value">{{ record.get_maintenance_type_display|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Problem Category</span><span class="meta-value">{{ record.problem_category|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Reported By</span><span class="meta-value">{{ record.reported_by|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Date Received</span><span class="meta-value">{{ record.date_received|date:"M d, Y"|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Expected Completion</span><span class="meta-value">{{ record.expected_completion_date|date:"M d, Y"|default:"-" }}</span></div>
+            <div class="meta-item"><span class="meta-label">Support Team</span><span class="meta-value">{{ record.support_team|default:"-" }}</span></div>
+        </div>
+    </div>
+
+    {% if record.case_description or record.diagnosis or record.repair_performed or record.testing_results %}
+    <div class="description-section">
+        <span class="meta-label">Technical Report</span>
+        {% if record.case_description %}<div class="description-body"><strong>Problem Description</strong>{{ record.case_description|linebreaks }}</div>{% endif %}
+        {% if record.diagnosis %}<div class="description-body"><strong>Diagnosis</strong>{{ record.diagnosis|linebreaks }}</div>{% endif %}
+        {% if record.repair_performed %}<div class="description-body"><strong>Repair Performed</strong>{{ record.repair_performed|linebreaks }}</div>{% endif %}
+        {% if record.testing_results %}<div class="description-body"><strong>Testing Results</strong>{{ record.testing_results|linebreaks }}</div>{% endif %}
     </div>
     {% endif %}
 
     <div class="attachments-section">
         <span class="meta-label">Attachments</span>
         {% if record.pdf_file %}
-        <p><a href="{% url 'download_record_pdf' record.id %}">Download Record PDF</a></p>
+        <p><a href="{% url 'download_record_pdf' record.id %}">Download Record Document</a></p>
         {% endif %}
 
         {% if can_update_record %}
         <form method="post" action="{% url 'upload_attachment' record.id %}" enctype="multipart/form-data" class="upload-form">
             {% csrf_token %}
             <div class="form-row">
-                <label for="id_file">Upload file</label>
+                <label for="id_file">Upload Attachment</label>
                 <input id="id_file" type="file" name="file" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
             </div>
-            <button type="submit" class="primary-btn">Upload File</button>
+            <button type="submit" class="primary-btn">Upload Attachment</button>
         </form>
         {% endif %}
 
@@ -79,12 +104,12 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="empty-state">No files attached.</p>
+        <p class="empty-state">No attachments available.</p>
         {% endif %}
     </div>
 
     <div class="split-actions">
-        <a href="{% url 'record_list' %}" class="back-link">Return to list</a>
+        <a href="{% url 'record_list' %}" class="back-link">Return to Records</a>
         <div class="actions">
             {% if can_update_record %}
             <a href="{% url 'record_update' record.id %}" class="btn btn-secondary">Edit Record</a>

@@ -13,8 +13,6 @@ class SystemSettingsAdmin(admin.ModelAdmin):
         "allow_anonymous_delete",
         "updated_at",
     )
-    filter_horizontal = ("allowed_users_for_repo_creation",)
-
     def has_add_permission(self, request):
         if SystemSettings.objects.exists():
             return False

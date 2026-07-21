@@ -32,6 +32,7 @@ EXEMPT_PATHS = [
 
 AUTHORITY_MUTATION_PATHS = [
     r"^/admin-panel/users/\d+/assign-role/$",
+    r"^/admin-panel/users/\d+/activate/$",
     r"^/admin-panel/users/\d+/deactivate/$",
     r"^/admin-panel/permissions/\d+/$",
 ]

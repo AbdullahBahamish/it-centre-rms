@@ -250,6 +250,9 @@ class AccessService:
         ):
             return False
 
+        if not getattr(actor, "is_superuser", False) and cls.get_role_name(actor) != ADMIN:
+            return False
+
         return cls.get_role(actor).outranks(cls.get_role(target))
 
     @classmethod

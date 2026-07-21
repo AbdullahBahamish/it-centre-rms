@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}{% if record %}Edit Record{% else %}Create Record{% endif %}{% endblock %}
+{% block title %}{% if record %}Edit Maintenance Record{% else %}Create Maintenance Record{% endif %}{% endblock %}
 
 {% block content %}
-<section class="panel">
+<section class="panel record-form-panel">
   <div class="panel-header">
     <div>
-      <h2>{% if record %}Edit Record{% else %}Create Record{% endif %}</h2>
-      <p class="panel-subtitle">Capture the essential details for each record in a consistent format.</p>
+      <h2>{% if record %}Edit Maintenance Record{% else %}Create Maintenance Record{% endif %}</h2>
+      <p class="panel-subtitle">Register equipment maintenance using the IT Centre standard workflow.</p>
     </div>
   </div>
 
   {% if form.errors %}
-  <div class="error-message">
+  <div class="error-message" role="alert" tabindex="-1" data-form-error-summary>
     Please correct the errors below.
     <ul class="error-list">
       {% for field, errors in form.errors.items %}
@@ -24,109 +24,172 @@
   </div>
   {% endif %}
 
-  <form method="post">
+  <form method="post" class="record-form maintenance-form" novalidate>
     {% csrf_token %}
-    <div class="form-grid">
-      {% for field in form %}
-      <div class="form-row">
-        {{ field.label_tag }}
-        {% if field.name == "contributors" %}
-        <div class="contributors-picker" data-field-id="{{ field.id_for_label }}">
-          <div id="contributors-container" class="contributors-multi-select" role="listbox" aria-multiselectable="true">
-            {% for user in field.field.queryset %}
-            <button
-              type="button"
-              class="contributors-option"
-              data-value="{{ user.id }}"
-              aria-pressed="false"
-            >
-              {{ user.username }}
-            </button>
-            {% endfor %}
-          </div>
-          <div class="contributors-native-select" hidden>
-            {{ field }}
-          </div>
-          <div id="selected-tags" class="contributors-tags" aria-live="polite"></div>
-        </div>
-        {% else %}
-        {{ field }}
-        {% endif %}
-        {% if field.help_text %}
-        <div class="form-help">{{ field.help_text }}</div>
-        {% endif %}
-        {% for error in field.errors %}
-        <div class="error-message">{{ error }}</div>
-        {% endfor %}
+    {{ form.retention_until.as_hidden }}
+    {{ form.allow_all_contributors.as_hidden }}
+    {{ form.contributors }}
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>General Information</h3>
+        <p>Classify the maintenance job within the Records Management System.</p>
       </div>
-      {% endfor %}
+
+      <div class="form-grid two-column-form-grid">
+        <div class="form-row{% if form.title.errors %} has-error{% endif %}">
+          <label for="{{ form.title.id_for_label }}" class="field-label">Title <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span></label>
+          {{ form.title }}
+          <div class="form-help" id="{{ form.title.id_for_label }}_help">Use a concise job title, such as Laptop battery replacement.</div>
+          {% for error in form.title.errors %}<div class="field-error" id="{{ form.title.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="form-row{% if form.record_type.errors %} has-error{% endif %}">
+          <label for="{{ form.record_type.id_for_label }}" class="field-label">Record Type <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span></label>
+          {{ form.record_type }}
+          <div class="form-help" id="{{ form.record_type.id_for_label }}_help">Select the record classification used for reporting.</div>
+          {% for error in form.record_type.errors %}<div class="field-error" id="{{ form.record_type.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+
+        <div class="form-row{% if form.category.errors %} has-error{% endif %}">
+          <label for="{{ form.category.id_for_label }}" class="field-label">Category <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span></label>
+          {{ form.category }}
+          <div class="form-help" id="{{ form.category.id_for_label }}_help">Category continues to control access permissions.</div>
+          {% for error in form.category.errors %}<div class="field-error" id="{{ form.category.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+      </div>
     </div>
 
-    <div class="actions">
-      <button type="submit" class="primary-btn">{% if record %}Update Record{% else %}Save Record{% endif %}</button>
-      <a href="{% url 'record_list' %}" class="cancel">Cancel</a>
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>Device Information</h3>
+        <p>Permanent asset details are stored once and linked to each maintenance record.</p>
+      </div>
+
+      <div class="form-grid two-column-form-grid">
+        {% for field in form %}
+        {% if field.name == "asset_tag" or field.name == "device_type" or field.name == "manufacturer" or field.name == "model" or field.name == "serial_number" or field.name == "operating_system" or field.name == "system_architecture" or field.name == "cpu" or field.name == "ram" or field.name == "storage" or field.name == "location" or field.name == "department" or field.name == "room" or field.name == "device_owner" %}
+        <div class="form-row{% if field.errors %} has-error{% endif %}">
+          <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}{% if field.field.required %} <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span>{% else %} <span class="optional-marker">(optional)</span>{% endif %}</label>
+          {{ field }}
+          {% if field.name == "asset_tag" %}<div class="form-help" id="{{ field.id_for_label }}_help">Unique asset identifier used by the Maintenance Room.</div>{% endif %}
+          {% if field.name == "serial_number" %}<div class="form-help" id="{{ field.id_for_label }}_help">Record the manufacturer serial number where available.</div>{% endif %}
+          {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>Maintenance Details</h3>
+        <p>Track ownership, priority, dates, and the current service state.</p>
+      </div>
+
+      <div class="form-grid two-column-form-grid">
+        {% for field in form %}
+        {% if field.name == "maintenance_type" or field.name == "problem_category" or field.name == "priority" or field.name == "reported_by" or field.name == "assigned_technician" or field.name == "assistant_technician" or field.name == "support_team" or field.name == "date_received" or field.name == "expected_completion_date" or field.name == "maintenance_status" %}
+        <div class="form-row{% if field.errors %} has-error{% endif %}">
+          <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}{% if field.field.required %} <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span>{% else %} <span class="optional-marker">(optional)</span>{% endif %}</label>
+          {{ field }}
+          {% if field.name == "assigned_technician" %}<div class="form-help" id="{{ field.id_for_label }}_help">Assigned technician is automatically granted record update access.</div>{% endif %}
+          {% if field.name == "expected_completion_date" %}<div class="form-help" id="{{ field.id_for_label }}_help">Use this for SLA planning and maintenance scheduling.</div>{% endif %}
+          {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>Technical Report</h3>
+        <p>Document the fault, diagnosis, repair activity, and test evidence.</p>
+      </div>
+
+      <div class="form-grid">
+        {% for field in form %}
+        {% if field.name == "case_description" or field.name == "diagnosis" or field.name == "repair_performed" or field.name == "software_installed" or field.name == "drivers_installed" or field.name == "parts_replaced" or field.name == "testing_results" or field.name == "remarks" %}
+        <div class="form-row{% if field.errors %} has-error{% endif %}">
+          <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}{% if field.field.required %} <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span>{% else %} <span class="optional-marker">(optional)</span>{% endif %}</label>
+          {{ field }}
+          {% if field.name == "case_description" %}<div class="form-help" id="{{ field.id_for_label }}_help">Describe the reported problem clearly enough for handoff.</div>{% endif %}
+          {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <div class="form-grid two-column-form-grid compact-check-grid">
+          <div class="form-row checkbox-field{% if form.bios_updated.errors %} has-error{% endif %}">
+            <label for="{{ form.bios_updated.id_for_label }}" class="checkbox-row">{{ form.bios_updated }} <span>BIOS Updated</span></label>
+            {% for error in form.bios_updated.errors %}<div class="field-error" id="{{ form.bios_updated.id_for_label }}_error">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="form-row checkbox-field{% if form.firmware_updated.errors %} has-error{% endif %}">
+            <label for="{{ form.firmware_updated.id_for_label }}" class="checkbox-row">{{ form.firmware_updated }} <span>Firmware Updated</span></label>
+            {% for error in form.firmware_updated.errors %}<div class="field-error" id="{{ form.firmware_updated.id_for_label }}_error">{{ error }}</div>{% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>Completion</h3>
+        <p>Capture final outcome details when the job is ready to close.</p>
+      </div>
+
+      <div class="form-grid two-column-form-grid">
+        {% for field in form %}
+        {% if field.name == "completed_by" or field.name == "completion_date" or field.name == "final_device_status" %}
+        <div class="form-row{% if field.errors %} has-error{% endif %}">
+          <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }} <span class="optional-marker">(optional)</span></label>
+          {{ field }}
+          {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-action-bar">
+      <a href="{% url 'record_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">{% if record %}Update Maintenance Record{% else %}Create Maintenance Record{% endif %}</button>
     </div>
   </form>
 </section>
-
 <script>
   (() => {
-    const picker = document.querySelector('.contributors-picker');
-    if (!picker) {
-      return;
-    }
-
-    const options = picker.querySelectorAll('.contributors-option');
-    const select = picker.querySelector('select[multiple]');
-    const tagsContainer = picker.querySelector('.contributors-tags');
-
-    if (!select) {
-      return;
-    }
-
-    const renderTags = () => {
-      tagsContainer.innerHTML = '';
-
-      [...select.options]
-        .filter((option) => option.selected)
-        .forEach((option) => {
-          const tag = document.createElement('div');
-          tag.className = 'contributors-tag';
-          tag.dataset.value = option.value;
-          tag.textContent = option.textContent;
-          tagsContainer.appendChild(tag);
-        });
-    };
-
-    const syncOptionState = () => {
-      const selectedValues = new Set(
-        [...select.options].filter((option) => option.selected).map((option) => option.value)
-      );
-
-      options.forEach((option) => {
-        const isSelected = selectedValues.has(option.dataset.value);
-        option.classList.toggle('selected', isSelected);
-        option.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-      });
-
-      renderTags();
-    };
-
-    options.forEach((option) => {
-      option.addEventListener('click', () => {
-        const value = option.dataset.value;
-        const nativeOption = [...select.options].find((item) => item.value === value);
-
-        if (!nativeOption) {
-          return;
+    document.querySelectorAll(".form-row").forEach((row) => {
+      const control = row.querySelector("input:not([type='hidden']), select, textarea");
+      const help = row.querySelector(".form-help");
+      if (control && help && help.id) {
+        const describedBy = control.getAttribute("aria-describedby");
+        if (!describedBy || !describedBy.split(" ").includes(help.id)) {
+          control.setAttribute("aria-describedby", describedBy ? `${describedBy} ${help.id}` : help.id);
         }
-
-        nativeOption.selected = !nativeOption.selected;
-        syncOptionState();
-      });
+      }
     });
 
-    syncOptionState();
+    document.querySelectorAll(".has-error").forEach((row) => {
+      const control = row.querySelector("input:not([type='hidden']), select, textarea");
+      const error = row.querySelector(".field-error");
+      if (control) {
+        control.setAttribute("aria-invalid", "true");
+      }
+      if (control && error && error.id) {
+        const describedBy = control.getAttribute("aria-describedby");
+        control.setAttribute("aria-describedby", describedBy ? `${describedBy} ${error.id}` : error.id);
+      }
+    });
+
+    const errorSummary = document.querySelector("[data-form-error-summary]");
+    const firstInvalid = document.querySelector(".has-error input:not([type='hidden']), .has-error select, .has-error textarea");
+    if (firstInvalid) {
+      firstInvalid.focus();
+    } else if (errorSummary) {
+      errorSummary.focus();
+    }
   })();
 </script>
 {% endblock %}
