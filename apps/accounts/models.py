@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import validate_image_file_extension
 from django.db import models
 
 from apps.accounts.domain.constants import ADMIN, MANAGER, STAFF, VIEWER
@@ -82,6 +83,11 @@ class UserProfile(models.Model):
         related_name="userprofile",
     )
     phone_number = models.CharField(max_length=30, unique=True)
+    profile_picture = models.FileField(
+        upload_to="profiles/",
+        blank=True,
+        validators=[validate_image_file_extension],
+    )
     role = models.ForeignKey(
         Role,
         on_delete=models.PROTECT,

@@ -129,12 +129,20 @@ class AttachmentRepository:
 
 class ITAssetRepository:
     @staticmethod
+    def get_by_asset_tag(asset_tag: str):
+        asset_tag = (asset_tag or "").strip().upper()
+        if not asset_tag:
+            return None
+        return ITAsset.objects.filter(asset_tag=asset_tag).first()
+
+    @staticmethod
     def upsert_from_payload(payload):
-        asset_tag = " ".join((payload.get("asset_tag") or "").split()).upper()
+        asset_tag = (payload.get("asset_tag") or "").strip().upper()
         if not asset_tag:
             return None
 
         defaults = {
+            "barcode": payload.get("barcode") or "",
             "device_type": payload.get("device_type") or "other",
             "manufacturer": payload.get("manufacturer") or "",
             "model": payload.get("model") or "",
@@ -147,7 +155,11 @@ class ITAssetRepository:
             "location": payload.get("location") or "",
             "department": payload.get("department") or "",
             "room": payload.get("room") or "",
-            "device_owner": payload.get("device_owner") or "",
+            "assigned_user": payload.get("assigned_user") or "",
+            "purchase_date": payload.get("purchase_date"),
+            "warranty_expiry": payload.get("warranty_expiry"),
+            "status": payload.get("status") or "active",
+            "notes": payload.get("notes") or "",
         }
         asset, _ = ITAsset.objects.update_or_create(asset_tag=asset_tag, defaults=defaults)
         return asset

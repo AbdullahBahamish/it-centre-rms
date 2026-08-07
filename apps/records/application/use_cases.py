@@ -21,6 +21,7 @@ def _normalize_text(value: str):
 
 DEVICE_FIELDS = (
     "asset_tag",
+    "barcode",
     "device_type",
     "manufacturer",
     "model",
@@ -33,8 +34,46 @@ DEVICE_FIELDS = (
     "location",
     "department",
     "room",
-    "device_owner",
+    "assigned_user",
+    "purchase_date",
+    "warranty_expiry",
+    "status",
+    "notes",
 )
+
+
+class LookupAssetUseCase:
+    def execute(self, *, asset_tag):
+        try:
+            asset = ITAssetRepository().get_by_asset_tag(asset_tag)
+            if not asset:
+                return ServiceResult(success=False, error="not_found")
+            
+            payload = {
+                "id": asset.id,
+                "asset_tag": asset.asset_tag,
+                "barcode": asset.barcode,
+                "device_type": asset.device_type,
+                "manufacturer": asset.manufacturer,
+                "model": asset.model,
+                "serial_number": asset.serial_number,
+                "operating_system": asset.operating_system,
+                "system_architecture": asset.system_architecture,
+                "cpu": asset.cpu,
+                "ram": asset.ram,
+                "storage": asset.storage,
+                "location": asset.location,
+                "department": asset.department,
+                "room": asset.room,
+                "assigned_user": asset.assigned_user,
+                "purchase_date": asset.purchase_date.isoformat() if asset.purchase_date else "",
+                "warranty_expiry": asset.warranty_expiry.isoformat() if asset.warranty_expiry else "",
+                "status": asset.status,
+                "notes": asset.notes,
+            }
+            return ServiceResult(success=True, payload=payload)
+        except Exception:
+            return ServiceResult(success=False, error="exception")
 
 MAINTENANCE_FIELDS = (
     "maintenance_type",

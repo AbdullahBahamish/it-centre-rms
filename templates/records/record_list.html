@@ -2,9 +2,10 @@
 {% block title %}Records{% endblock %}
 
 {% block content %}
-<section class="panel">
+<section class="panel workspace-panel">
   <div class="panel-header">
     <div>
+      <span class="page-kicker">Maintenance workspace</span>
       <h2>Records</h2>
       <p class="panel-subtitle">Review IT Centre maintenance jobs and linked equipment assets from a single workspace.</p>
     </div>
@@ -13,8 +14,13 @@
     {% endif %}
   </div>
 
+  <div class="record-list-toolbar">
+    <span class="record-count">{{ records|length }} record{{ records|length|pluralize }}</span>
+    <span class="record-list-hint">Select a record to view its maintenance history.</span>
+  </div>
+
   <div class="table-card">
-    <table>
+    <table class="records-table">
       <thead>
         <tr>
           <th>Title</th>
@@ -26,14 +32,14 @@
       <tbody>
         {% for record in records %}
         <tr>
-          <td><a href="{% url 'record_detail' record.id %}" class="record-link">{{ record.title }}</a></td>
-          <td>{% if record.asset %}{{ record.asset.asset_tag }}{% else %}-{% endif %}</td>
-          <td>{% if record.priority %}{{ record.get_priority_display }}{% else %}-{% endif %}</td>
-          <td><span class="status-badge {{ record.maintenance_status|default:record.status }}">{{ record.get_maintenance_status_display|default:record.get_status_display }}</span></td>
+          <td data-label="Record"><a href="{% url 'record_detail' record.id %}" class="record-link">{{ record.title }}</a></td>
+          <td data-label="Asset">{% if record.asset %}{{ record.asset.asset_tag }}{% else %}-{% endif %}</td>
+          <td data-label="Priority">{% if record.priority %}<span class="priority-value">{{ record.get_priority_display }}</span>{% else %}-{% endif %}</td>
+          <td data-label="Status"><span class="status-badge {{ record.maintenance_status|default:record.status }}">{{ record.get_maintenance_status_display|default:record.get_status_display }}</span></td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="3" class="empty-state">No records have been created yet.</td>
+          <td colspan="4" class="empty-state">No records have been created yet.</td>
         </tr>
         {% endfor %}
       </tbody>

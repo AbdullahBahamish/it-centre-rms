@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("", views.admin_dashboard, name="admin_dashboard"),
+    path("analytics/", views.analytics_dashboard, name="admin_analytics"),
     path("users/", views.user_management, name="admin_user_management"),
     path("users/<int:user_id>/activate/", views.activate_user, name="admin_activate_user"),
     path("users/<int:user_id>/assign-role/", views.assign_user_role, name="admin_assign_user_role"),

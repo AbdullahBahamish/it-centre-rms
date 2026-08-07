@@ -60,20 +60,24 @@
       </div>
     </div>
 
-    <div class="form-section">
+    <div class="form-section priority-section">
       <div class="form-section-header">
-        <h3>Device Information</h3>
-        <p>Permanent asset details are stored once and linked to each maintenance record.</p>
+        <div>
+          <span class="section-kicker">Start here</span>
+          <h3>Maintenance Details</h3>
+          <p>Capture the operational details engineers use most often.</p>
+        </div>
+        <span class="section-badge">Core fields</span>
       </div>
 
       <div class="form-grid two-column-form-grid">
         {% for field in form %}
-        {% if field.name == "asset_tag" or field.name == "device_type" or field.name == "manufacturer" or field.name == "model" or field.name == "serial_number" or field.name == "operating_system" or field.name == "system_architecture" or field.name == "cpu" or field.name == "ram" or field.name == "storage" or field.name == "location" or field.name == "department" or field.name == "room" or field.name == "device_owner" %}
+        {% if field.name == "maintenance_type" or field.name == "problem_category" or field.name == "priority" or field.name == "reported_by" or field.name == "assigned_technician" or field.name == "assistant_technician" or field.name == "support_team" or field.name == "date_received" or field.name == "expected_completion_date" or field.name == "maintenance_status" %}
         <div class="form-row{% if field.errors %} has-error{% endif %}">
           <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}{% if field.field.required %} <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span>{% else %} <span class="optional-marker">(optional)</span>{% endif %}</label>
           {{ field }}
-          {% if field.name == "asset_tag" %}<div class="form-help" id="{{ field.id_for_label }}_help">Unique asset identifier used by the Maintenance Room.</div>{% endif %}
-          {% if field.name == "serial_number" %}<div class="form-help" id="{{ field.id_for_label }}_help">Record the manufacturer serial number where available.</div>{% endif %}
+          {% if field.name == "assigned_technician" %}<div class="form-help" id="{{ field.id_for_label }}_help">This person receives record update access.</div>{% endif %}
+          {% if field.name == "expected_completion_date" %}<div class="form-help" id="{{ field.id_for_label }}_help">Useful for SLA planning and scheduling.</div>{% endif %}
           {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
         </div>
         {% endif %}
@@ -83,22 +87,40 @@
 
     <div class="form-section">
       <div class="form-section-header">
-        <h3>Maintenance Details</h3>
-        <p>Track ownership, priority, dates, and the current service state.</p>
+        <h3>Asset Information</h3>
+        <p>Permanent asset details are stored once and linked to each maintenance record.</p>
       </div>
 
-      <div class="form-grid two-column-form-grid">
+      <div class="asset-lookup-container">
+        <div class="form-row{% if form.asset_tag.errors %} has-error{% endif %}">
+          <label for="{{ form.asset_tag.id_for_label }}" class="field-label">Asset Tag <span class="optional-marker">(optional)</span></label>
+          <div class="input-group">
+            {{ form.asset_tag }}
+            <button type="button" id="btn-asset-lookup" class="btn btn-secondary">Lookup</button>
+          </div>
+          <div class="form-help">Unique asset identifier. Enter a tag and click Lookup to fetch existing details.</div>
+          {% for error in form.asset_tag.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+        </div>
+        {{ form.asset_id }}
+      </div>
+
+      <details class="advanced-form-section">
+        <summary>Device Information <span>Optional · expand when recording equipment information</span></summary>
+      <div id="asset-details-fields" class="form-grid two-column-form-grid">
         {% for field in form %}
-        {% if field.name == "maintenance_type" or field.name == "problem_category" or field.name == "priority" or field.name == "reported_by" or field.name == "assigned_technician" or field.name == "assistant_technician" or field.name == "support_team" or field.name == "date_received" or field.name == "expected_completion_date" or field.name == "maintenance_status" %}
+        {% if field.name == "barcode" or field.name == "device_type" or field.name == "manufacturer" or field.name == "model" or field.name == "serial_number" or field.name == "operating_system" or field.name == "system_architecture" or field.name == "cpu" or field.name == "ram" or field.name == "storage" or field.name == "location" or field.name == "department" or field.name == "room" or field.name == "assigned_user" or field.name == "purchase_date" or field.name == "warranty_expiry" or field.name == "asset_status" or field.name == "asset_notes" %}
         <div class="form-row{% if field.errors %} has-error{% endif %}">
           <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}{% if field.field.required %} <span class="required-marker" aria-hidden="true">*</span><span class="sr-only">required</span>{% else %} <span class="optional-marker">(optional)</span>{% endif %}</label>
           {{ field }}
-          {% if field.name == "assigned_technician" %}<div class="form-help" id="{{ field.id_for_label }}_help">Assigned technician is automatically granted record update access.</div>{% endif %}
-          {% if field.name == "expected_completion_date" %}<div class="form-help" id="{{ field.id_for_label }}_help">Use this for SLA planning and maintenance scheduling.</div>{% endif %}
-          {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
+          {% if field.name == "serial_number" %}<div class="form-help">Record the manufacturer serial number where available.</div>{% endif %}
+          {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
         </div>
         {% endif %}
         {% endfor %}
+      </div>
+      </details>
+      <div class="asset-actions" style="margin-top: 1rem;">
+        <button type="button" id="btn-asset-clear" class="btn btn-secondary btn-sm" style="display: none;">Clear Asset Data</button>
       </div>
     </div>
 
@@ -120,6 +142,21 @@
         {% endif %}
         {% endfor %}
 
+        <details class="advanced-form-section report-advanced-section">
+          <summary>Additional technical details <span>Optional</span></summary>
+          <div class="form-grid two-column-form-grid">
+          {% for field in form %}
+          {% if field.name == "software_installed" or field.name == "drivers_installed" or field.name == "parts_replaced" or field.name == "remarks" %}
+          <div class="form-row{% if field.errors %} has-error{% endif %}">
+            <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }} <span class="optional-marker">(optional)</span></label>
+            {{ field }}
+            {% for error in field.errors %}<div class="field-error" id="{{ field.id_for_label }}_error">{{ error }}</div>{% endfor %}
+          </div>
+          {% endif %}
+          {% endfor %}
+          </div>
+        </details>
+
         <div class="form-grid two-column-form-grid compact-check-grid">
           <div class="form-row checkbox-field{% if form.bios_updated.errors %} has-error{% endif %}">
             <label for="{{ form.bios_updated.id_for_label }}" class="checkbox-row">{{ form.bios_updated }} <span>BIOS Updated</span></label>
@@ -133,7 +170,9 @@
       </div>
     </div>
 
-    <div class="form-section">
+    <details class="advanced-form-section completion-section">
+      <summary>Completion and final outcome <span>Optional · use when closing the job</span></summary>
+    <div class="form-section embedded-form-section">
       <div class="form-section-header">
         <h3>Completion</h3>
         <p>Capture final outcome details when the job is ready to close.</p>
@@ -151,6 +190,7 @@
         {% endfor %}
       </div>
     </div>
+    </details>
 
     <div class="form-action-bar">
       <a href="{% url 'record_list' %}" class="btn btn-secondary">Cancel</a>
@@ -160,6 +200,7 @@
 </section>
 <script>
   (() => {
+    // Accessibility and validation setup
     document.querySelectorAll(".form-row").forEach((row) => {
       const control = row.querySelector("input:not([type='hidden']), select, textarea");
       const help = row.querySelector(".form-help");
@@ -190,6 +231,119 @@
     } else if (errorSummary) {
       errorSummary.focus();
     }
+
+    // Asset Lookup Logic
+    const btnLookup = document.getElementById("btn-asset-lookup");
+    const btnClear = document.getElementById("btn-asset-clear");
+    const assetTagInput = document.getElementById("id_asset_tag");
+    const assetIdInput = document.getElementById("id_asset_id");
+    
+    const assetFields = {
+      "barcode": document.getElementById("id_barcode"),
+      "device_type": document.getElementById("id_device_type"),
+      "manufacturer": document.getElementById("id_manufacturer"),
+      "model": document.getElementById("id_model"),
+      "serial_number": document.getElementById("id_serial_number"),
+      "operating_system": document.getElementById("id_operating_system"),
+      "system_architecture": document.getElementById("id_system_architecture"),
+      "cpu": document.getElementById("id_cpu"),
+      "ram": document.getElementById("id_ram"),
+      "storage": document.getElementById("id_storage"),
+      "location": document.getElementById("id_location"),
+      "department": document.getElementById("id_department"),
+      "room": document.getElementById("id_room"),
+      "assigned_user": document.getElementById("id_assigned_user"),
+      "purchase_date": document.getElementById("id_purchase_date"),
+      "warranty_expiry": document.getElementById("id_warranty_expiry"),
+      "asset_status": document.getElementById("id_asset_status"),
+      "asset_notes": document.getElementById("id_asset_notes"),
+    };
+
+    const setFieldsReadonly = (readonly) => {
+      Object.values(assetFields).forEach(field => {
+        if (field) {
+          if (field.tagName === "SELECT") {
+            field.disabled = readonly;
+          } else {
+            field.readOnly = readonly;
+          }
+        }
+      });
+      if (readonly) {
+        btnClear.style.display = "inline-block";
+      } else {
+        btnClear.style.display = "none";
+      }
+    };
+
+    // If asset_id is already present (e.g. edit mode), show clear button
+    if (assetIdInput && assetIdInput.value) {
+      btnClear.style.display = "inline-block";
+    }
+
+    btnLookup.addEventListener("click", async () => {
+      const tag = assetTagInput.value.trim();
+      if (!tag) {
+        alert("Please enter an Asset Tag first.");
+        return;
+      }
+
+      btnLookup.disabled = true;
+      btnLookup.textContent = "Searching...";
+
+      try {
+        const response = await fetch(`{% url 'asset_lookup' %}?asset_tag=${encodeURIComponent(tag)}`);
+        const data = await response.json();
+
+        if (data.success) {
+          const asset = data.payload;
+          assetIdInput.value = asset.id;
+          
+          // Populate fields
+          for (const [key, field] of Object.entries(assetFields)) {
+            if (field) {
+              field.value = asset[key] || "";
+            }
+          }
+          
+          setFieldsReadonly(true);
+          assetTagInput.readOnly = true;
+          alert("Asset found and details populated.");
+        } else {
+          if (data.error === "not_found") {
+            if (confirm("Asset not found. Would you like to create a new asset with this tag?")) {
+              assetIdInput.value = "";
+              setFieldsReadonly(false);
+              assetTagInput.readOnly = true;
+            }
+          } else {
+            alert("An error occurred while looking up the asset.");
+          }
+        }
+      } catch (error) {
+        console.error("Lookup error:", error);
+        alert("Could not connect to the server.");
+      } finally {
+        btnLookup.disabled = false;
+        btnLookup.textContent = "Lookup";
+      }
+    });
+
+    btnClear.addEventListener("click", () => {
+      if (confirm("Clear asset data and select a different asset?")) {
+        assetIdInput.value = "";
+        assetTagInput.value = "";
+        assetTagInput.readOnly = false;
+        Object.values(assetFields).forEach(field => {
+          if (field) {
+            field.value = "";
+            if (field.tagName === "SELECT") field.disabled = false;
+            else field.readOnly = false;
+          }
+        });
+        setFieldsReadonly(false);
+      }
+    });
   })();
 </script>
 {% endblock %}

@@ -94,6 +94,10 @@ class AccessService:
     @classmethod
     def get_role(cls, user):
         try:
+            if user and getattr(user, "is_superuser", False):
+                admin_role = Role.objects.filter(name=ADMIN).first()
+                if admin_role:
+                    return admin_role
             profile = cls._get_profile(user)
             if not profile or not profile.role_id:
                 return cls._fallback_role(user)

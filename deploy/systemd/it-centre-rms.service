@@ -1,0 +1,21 @@
+[Unit]
+Description=IT Centre Record Management System
+After=network.target postgresql.service redis-server.service
+
+[Service]
+Type=notify
+User=it-centre-rms
+Group=www-data
+WorkingDirectory=/srv/it-centre-rms/app
+EnvironmentFile=/etc/it-centre-rms/rms.env
+RuntimeDirectory=it-centre-rms
+RuntimeDirectoryMode=0750
+ExecStart=/srv/it-centre-rms/venv/bin/gunicorn it_centre_rms.wsgi:application --workers 3 --bind unix:/run/it-centre-rms/gunicorn.sock --access-logfile - --error-logfile -
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

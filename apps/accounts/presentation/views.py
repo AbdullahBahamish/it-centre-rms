@@ -1,12 +1,15 @@
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.http import FileResponse, Http404
 from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN, PasswordResetConfirmView
 from django.shortcuts import redirect, render
 from django.views.generic.edit import FormView
 
 from apps.accounts.application.use_cases import RegisterUserUseCase, RequestPasswordResetUseCase
 from apps.accounts.domain.constants import GENERIC_PASSWORD_RESET_MESSAGE
-from apps.accounts.presentation.forms import PasswordRecoveryForm, SignupForm
+from apps.accounts.presentation.forms import PasswordRecoveryForm, ProfileUpdateForm, SignupForm
 
 
 def signup(request):
@@ -41,6 +44,60 @@ def recover_password(request):
         form = PasswordRecoveryForm()
 
     return render(request, "registration/password_recover.html", {"form": form})
+
+
+@login_required
+def profile(request):
+    if request.method == "POST":
+        form = ProfileUpdateForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            request.user.email = form.cleaned_data["email"]
+            request.user.save(update_fields=["email"])
+            user_profile = request.user.userprofile
+            user_profile.phone_number = form.cleaned_data["phone_number"]
+            if form.cleaned_data.get("profile_picture"):
+                user_profile.profile_picture = form.cleaned_data["profile_picture"]
+            user_profile.save()
+            messages.success(request, "Your profile has been updated.")
+            return redirect("profile")
+    else:
+        form = ProfileUpdateForm(user=request.user)
+    return render(request, "accounts/profile.html", {"form": form})
+
+
+@login_required
+def change_password(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Your password has been changed.")
+            return redirect("profile")
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, "accounts/change_password.html", {"form": form})
+
+
+@login_required
+def profile_picture(request):
+    file_field = request.user.userprofile.profile_picture
+    if not file_field or not file_field.name or not file_field.storage.exists(file_field.name):
+        raise Http404
+    return FileResponse(file_field.open("rb"), content_type="image/*")
+
+
+@login_required
+def remove_profile_picture(request):
+    if request.method != "POST":
+        return redirect("profile")
+    user_profile = request.user.userprofile
+    if user_profile.profile_picture:
+        user_profile.profile_picture.delete(save=False)
+        user_profile.profile_picture = ""
+        user_profile.save(update_fields=["profile_picture"])
+    messages.success(request, "Your profile picture has been removed.")
+    return redirect("profile")
 
 
 class IntranetPasswordResetConfirmView(PasswordResetConfirmView):

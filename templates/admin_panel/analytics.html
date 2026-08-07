@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Operational Analytics{% endblock %}
+
+{% block content %}
+<section class="panel analytics-panel">
+    <div class="panel-header analytics-header">
+        <div>
+            <span class="section-kicker">Administration</span>
+            <h2>Operational Analytics</h2>
+            <p class="panel-subtitle">Understand demand, workload, turnaround, and overdue maintenance from recorded activity.</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Back to Administration</a>
+    </div>
+
+    <div class="stats-grid analytics-stats">
+        <div class="stat-card"><span class="meta-label">Total Records</span><strong>{{ total_records }}</strong><small>All captured work</small></div>
+        <div class="stat-card"><span class="meta-label">Active Work</span><strong>{{ active_records }}</strong><small>Currently open</small></div>
+        <div class="stat-card"><span class="meta-label">Completed</span><strong>{{ completed_records }}</strong><small>Completed or delivered</small></div>
+        <div class="stat-card {% if overdue_count %}stat-warning{% endif %}"><span class="meta-label">Overdue</span><strong>{{ overdue_count }}</strong><small>Past expected completion</small></div>
+        <div class="stat-card"><span class="meta-label">Avg. Turnaround</span><strong>{% if average_turnaround != None %}{{ average_turnaround }}{% else %}—{% endif %}</strong><small>Days from received to completed</small></div>
+    </div>
+
+    <div class="analytics-grid">
+        <section class="analytics-card">
+            <div class="analytics-card-header"><h3>Category demand</h3><span>Bar chart · top 8</span></div>
+            {% if categories %}
+            <div class="bar-chart" role="img" aria-label="Record count by category">
+                {% for item in categories %}
+                <div class="bar-column">
+                    <strong>{{ item.total }}</strong>
+                    <div class="bar-track"><span style="height: {{ item.percent }}%"></span></div>
+                    <small title="{{ item.label }}">{{ item.label }}</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}<p class="empty-state">No category data yet.</p>{% endif %}
+        </section>
+
+        <section class="analytics-card">
+            <div class="analytics-card-header"><h3>Engineer workload</h3><span>Assigned records</span></div>
+            {% for item in engineers %}
+            <div class="metric-row">
+                <div class="metric-label"><strong>{{ item.label }}</strong><span>{{ item.total }}{% if item.average_days != None %} · {{ item.average_days }}d avg{% endif %}</span></div>
+                <div class="metric-track workload-track"><span style="width: {{ item.percent }}%"></span></div>
+            </div>
+            {% empty %}<p class="empty-state">No assigned engineer data yet.</p>{% endfor %}
+        </section>
+    </div>
+
+    <div class="analytics-grid analytics-grid-bottom">
+        <section class="analytics-card">
+            <div class="analytics-card-header"><h3>Maintenance status</h3><span>Current flow</span></div>
+            <div class="status-matrix">
+                {% for item in statuses %}<div class="status-tile"><strong>{{ item.total }}</strong><span>{{ item.label }}</span></div>{% empty %}<p class="empty-state">No status data yet.</p>{% endfor %}
+            </div>
+        </section>
+        <section class="analytics-card priority-chart-card">
+            <div class="analytics-card-header"><h3>Priority mix</h3><span>Pie chart · risk signal</span></div>
+            <div class="pie-layout">
+                <div class="pie-chart" style="background: conic-gradient({{ priority_pie_style }});" role="img" aria-label="Record distribution by priority"></div>
+                <div class="pie-legend">
+                    {% for item in priorities %}<div><i style="background: {{ item.color }}"></i><span>{{ item.label }}</span><strong>{{ item.total }}</strong></div>{% empty %}<p class="empty-state">No priority data yet.</p>{% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="analytics-card user-log-section">
+        <div class="analytics-card-header"><div><h3>User and system activity</h3><p class="analytics-card-subtitle">Account health, growth, and recent security events.</p></div><span>Operations</span></div>
+        <div class="user-log-grid">
+            <div class="user-activity-summary">
+                <div class="activity-number"><strong>{{ active_users }}</strong><span>Active users</span></div>
+                <div class="activity-number"><strong>{{ inactive_users }}</strong><span>Inactive users</span></div>
+                <div class="activity-number"><strong>{{ users_created_today }}</strong><span>Created today</span></div>
+                <div class="activity-number"><strong>{{ users_created_week }}</strong><span>Created in 7 days</span></div>
+                <div class="activity-number"><strong>{{ users_created_month }}</strong><span>Created in 30 days</span></div>
+            </div>
+            <div class="user-status-chart">
+                <div class="pie-layout compact-pie-layout">
+                    <div class="pie-chart small-pie-chart" style="background: conic-gradient({{ user_status_pie_style }});" role="img" aria-label="Active and inactive user distribution"></div>
+                    <div class="pie-legend">{% for item in user_statuses %}<div><i style="background: {{ item.color }}"></i><span>{{ item.label }}</span><strong>{{ item.total }}</strong></div>{% endfor %}</div>
+                </div>
+            </div>
+            <div class="user-creation-chart">
+                <div class="mini-chart-title">New users by month</div>
+                <div class="bar-chart mini-bar-chart" role="img" aria-label="New users by month">
+                    {% for item in user_creation_months %}<div class="bar-column"><strong>{{ item.total }}</strong><div class="bar-track"><span style="height: {{ item.percent }}%"></span></div><small>{{ item.label }}</small></div>{% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="logs-panel">
+            <div class="mini-chart-title">Security log · {{ security_log_count }} recorded event{{ security_log_count|pluralize }}</div>
+            {% if log_warning %}<p class="analytics-warning">{{ log_warning }}</p>{% endif %}
+            {% for line in recent_security_logs %}<div class="log-line">{{ line }}</div>{% empty %}<p class="empty-state">No security events have been recorded yet.</p>{% endfor %}
+        </div>
+    </section>
+
+    <p class="analytics-note">Insights are calculated from records currently stored in RMS. More complete dates, statuses, priorities, categories, and assignments produce more useful operational signals.</p>
+</section>
+{% endblock %}

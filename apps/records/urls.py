@@ -5,6 +5,7 @@ from apps.records.presentation import views
 urlpatterns = [
     path("", views.record_list, name="record_list"),
     path("create/", views.record_create, name="record_create"),
+    path("lookup/asset/", views.asset_lookup, name="asset_lookup"),
     path("<int:record_id>/", views.record_detail, name="record_detail"),
     path("<int:record_id>/download/pdf/", views.download_record_pdf, name="download_record_pdf"),
     path("<int:record_id>/edit/", views.record_update, name="record_update"),

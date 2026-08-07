@@ -47,3 +47,22 @@ The system is intended for internal IT Centre use where records must be maintain
    python manage.py migrate
    python manage.py runserver
    ```
+
+## Testing
+
+Run the complete automated test suite with:
+
+```bash
+python manage.py test
+```
+
+The suite covers account security, role-based access controls, record workflows,
+attachment validation and storage, system policy middleware, and core utilities.
+
+## Deployment
+
+For a university local-server installation with PostgreSQL, Redis, HTTPS, SMTP,
+backups, and service configuration, follow [the deployment guide](docs/deployment.md).
+Complete [user acceptance testing](docs/user-acceptance-testing.md) before go-live.
+For administrator setup, follow [the admin setup guide](docs/admin-setup.md).
+For system integrations, see [the API guide](docs/api.md).

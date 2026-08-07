@@ -37,7 +37,7 @@
                     <td>{% if managed_user.is_active %}<span class="status-badge active">Active</span>{% else %}<span class="status-badge archived">Inactive</span>{% endif %}</td>
                     <td>
                         <div class="table-actions">
-                            {% if can_assign_roles and managed_user.id != request.user.id %}
+                            {% if can_assign_roles and managed_user.id in assignable_user_ids %}
                             <form method="post" action="{% url 'admin_assign_user_role' managed_user.id %}" class="inline-form">
                                 {% csrf_token %}
                                 <div class="table-actions">
@@ -50,8 +50,8 @@
                                 </div>
                             </form>
                             {% endif %}
-                            {% if can_manage_users %}
-                                {% if managed_user.is_active and managed_user.id != request.user.id %}
+                            {% if can_manage_users and managed_user.id in manageable_user_ids %}
+                                {% if managed_user.is_active %}
                                 <form method="post" action="{% url 'admin_deactivate_user' managed_user.id %}" class="inline-form">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger">Deactivate</button>

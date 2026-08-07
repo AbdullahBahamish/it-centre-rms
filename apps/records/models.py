@@ -140,8 +140,17 @@ class ITAsset(models.Model):
         ("x86", "x86"),
         ("arm64", "ARM64"),
     )
+    STATUS_CHOICES = (
+        ("active", "Active"),
+        ("under_maintenance", "Under Maintenance"),
+        ("retired", "Retired"),
+        ("lost", "Lost"),
+        ("disposed", "Disposed"),
+        ("in_storage", "In Storage"),
+    )
 
     asset_tag = models.CharField("Asset Tag", max_length=80, unique=True)
+    barcode = models.CharField("Barcode / QR Code", max_length=120, blank=True)
     device_type = models.CharField("Device Type", max_length=30, choices=DEVICE_TYPE_CHOICES)
     manufacturer = models.CharField("Manufacturer", max_length=30, choices=MANUFACTURER_CHOICES, blank=True)
     model = models.CharField("Model", max_length=120, blank=True)
@@ -154,7 +163,11 @@ class ITAsset(models.Model):
     location = models.CharField("Location", max_length=120, blank=True)
     department = models.CharField("Department", max_length=120, blank=True)
     room = models.CharField("Room", max_length=80, blank=True)
-    device_owner = models.CharField("Device Owner", max_length=150, blank=True)
+    assigned_user = models.CharField("Assigned User", max_length=150, blank=True)
+    purchase_date = models.DateField("Purchase Date", null=True, blank=True)
+    warranty_expiry = models.DateField("Warranty Expiry", null=True, blank=True)
+    status = models.CharField("Status", max_length=30, choices=STATUS_CHOICES, default="active")
+    notes = models.TextField("Notes", blank=True)
     created_at = models.DateTimeField("Created At", default=now_with_milliseconds, editable=False)
     updated_at = models.DateTimeField("Updated At", default=now_with_milliseconds)
 
@@ -279,14 +292,14 @@ class Record(models.Model):
     date_received = models.DateField("Date Received", null=True, blank=True)
     expected_completion_date = models.DateField("Expected Completion Date", null=True, blank=True)
     maintenance_status = models.CharField("Maintenance Status", max_length=30, choices=MAINTENANCE_STATUS_CHOICES, blank=True)
-    case_description = models.TextField("Case Description", blank=True)
+    case_description = models.TextField("Problem Description", blank=True)
     diagnosis = models.TextField("Diagnosis", blank=True)
     repair_performed = models.TextField("Repair Performed", blank=True)
     software_installed = models.TextField("Software Installed", blank=True)
-    drivers_installed = models.TextField("Drivers Installed", blank=True)
+    drivers_installed = models.TextField("Driver Updates", blank=True)
     parts_replaced = models.TextField("Parts Replaced", blank=True)
     bios_updated = models.BooleanField("BIOS Updated", default=False)
-    firmware_updated = models.BooleanField("Firmware Updated", default=False)
+    firmware_updated = models.BooleanField("Firmware Updates", default=False)
     testing_results = models.TextField("Testing Results", blank=True)
     remarks = models.TextField("Remarks", blank=True)
     completed_by = models.ForeignKey(
@@ -298,7 +311,7 @@ class Record(models.Model):
         verbose_name="Completed By",
     )
     completion_date = models.DateField("Completion Date", null=True, blank=True)
-    final_device_status = models.CharField("Final Device Status", max_length=40, choices=FINAL_DEVICE_STATUS_CHOICES, blank=True)
+    final_device_status = models.CharField("Final Outcome", max_length=40, choices=FINAL_DEVICE_STATUS_CHOICES, blank=True)
 
     status = models.CharField(
         "Status",

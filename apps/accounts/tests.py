@@ -135,6 +135,79 @@ class PasswordRecoverySecurityTests(TestCase):
         self.assertEqual(response.status_code, 429)
 
 
+class ProfileManagementTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="profile-user",
+            email="profile@example.com",
+            password="OldPass123!",
+        )
+        force_role(self.user, Role.STAFF, "7000000099")
+        self.client.force_login(self.user)
+
+    def test_user_can_update_email_and_phone_number(self):
+        response = self.client.post(
+            reverse("profile"),
+            {"email": "updated@example.com", "phone_number": "7000000100"},
+        )
+
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, "updated@example.com")
+        self.assertEqual(self.user.userprofile.phone_number, "7000000100")
+
+    def test_generated_phone_placeholder_is_not_shown_in_profile_form(self):
+        self.user.userprofile.phone_number = f"user-{self.user.pk}"
+        self.user.userprofile.save(update_fields=["phone_number"])
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="phone_number"')
+        self.assertNotContains(response, f'value="user-{self.user.pk}"')
+
+    def test_profile_rejects_duplicate_email_and_phone_number(self):
+        other = User.objects.create_user(username="other-profile", email="other@example.com", password="StrongPass123!")
+        force_role(other, Role.STAFF, "7000000101")
+
+        response = self.client.post(
+            reverse("profile"),
+            {"email": "other@example.com", "phone_number": "7000000101"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "already used")
+
+    def test_user_can_change_password_without_being_logged_out(self):
+        response = self.client.post(
+            reverse("change_password"),
+            {
+                "old_password": "OldPass123!",
+                "new_password1": "NewStrongPass123!",
+                "new_password2": "NewStrongPass123!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewStrongPass123!"))
+        self.assertTrue(self.client.session.get("_auth_user_id"))
+
+    def test_user_can_remove_profile_picture(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.user.userprofile.profile_picture = SimpleUploadedFile(
+            "avatar.png", b"not-used-by-this-delete-test", content_type="image/png"
+        )
+        self.user.userprofile.save(update_fields=["profile_picture"])
+
+        response = self.client.post(reverse("remove_profile_picture"))
+
+        self.assertRedirects(response, reverse("profile"))
+        self.user.userprofile.refresh_from_db()
+        self.assertFalse(self.user.userprofile.profile_picture)
+
+
 class LoginRateLimitTests(TestCase):
     @override_settings(AUTH_RATE_LIMITS={"/accounts/login/": (1, 300)})
     def test_login_endpoint_is_rate_limited(self):

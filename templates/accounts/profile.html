@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="panel profile-panel">
+    <div class="panel-header">
+        <div>
+            <h2>My Profile</h2>
+            <p class="panel-subtitle">Update your contact information and profile picture.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="{% if 'success' in message.tags %}success-message{% else %}error-message{% endif %}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="profile-layout">
+        <div class="profile-summary">
+            <div class="profile-avatar">
+                {% if request.user.userprofile.profile_picture %}
+                <img src="{% url 'profile_picture' %}" alt="Profile picture">
+                {% else %}
+                <span>{{ request.user.username|first|upper }}</span>
+                {% endif %}
+            </div>
+            {% if request.user.userprofile.profile_picture %}
+            <form method="post" action="{% url 'remove_profile_picture' %}" class="remove-picture-form">
+                {% csrf_token %}
+                <button type="submit" class="remove-picture-button">Remove picture</button>
+            </form>
+            {% endif %}
+            <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+            <span>{{ request.user.userprofile.role.display_name }}</span>
+            <small>Keep your contact details current.</small>
+        </div>
+
+        <div class="profile-form-card">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                <div class="form-field">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <a href="{% url 'change_password' %}" class="btn btn-secondary">Change Password</a>
+    </div>
+</section>
+{% endblock %}

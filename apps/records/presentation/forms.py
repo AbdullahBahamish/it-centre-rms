@@ -36,7 +36,11 @@ class RecordForm(forms.Form):
         label="Retention Until",
         widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
     )
+    
+    # Asset Information
+    asset_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
     asset_tag = forms.CharField(max_length=80, required=False, label="Asset Tag")
+    barcode = forms.CharField(max_length=120, required=False, label="Barcode / QR Code")
     device_type = forms.ChoiceField(choices=(("", "Select device type"),) + ITAsset.DEVICE_TYPE_CHOICES, required=False, label="Device Type")
     manufacturer = forms.ChoiceField(choices=(("", "Select manufacturer"),) + ITAsset.MANUFACTURER_CHOICES, required=False, label="Manufacturer")
     model = forms.CharField(max_length=120, required=False, label="Model")
@@ -49,7 +53,13 @@ class RecordForm(forms.Form):
     location = forms.CharField(max_length=120, required=False, label="Location")
     department = forms.CharField(max_length=120, required=False, label="Department")
     room = forms.CharField(max_length=80, required=False, label="Room")
-    device_owner = forms.CharField(max_length=150, required=False, label="Device Owner")
+    assigned_user = forms.CharField(max_length=150, required=False, label="Assigned User")
+    purchase_date = forms.DateField(required=False, label="Purchase Date", widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
+    warranty_expiry = forms.DateField(required=False, label="Warranty Expiry", widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
+    asset_status = forms.ChoiceField(choices=ITAsset.STATUS_CHOICES, required=False, label="Asset Status")
+    asset_notes = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), required=False, label="Asset Notes")
+
+    # Maintenance Details
     maintenance_type = forms.ChoiceField(choices=(("", "Select maintenance type"),) + Record.MAINTENANCE_TYPE_CHOICES, required=False, label="Maintenance Type")
     problem_category = forms.CharField(max_length=120, required=False, label="Problem Category")
     priority = forms.ChoiceField(choices=(("", "Select priority"),) + Record.PRIORITY_CHOICES, required=False, label="Priority")
@@ -70,15 +80,15 @@ class RecordForm(forms.Form):
     diagnosis = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Diagnosis")
     repair_performed = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Repair Performed")
     software_installed = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Software Installed")
-    drivers_installed = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Drivers Installed")
+    drivers_installed = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Driver Updates")
     parts_replaced = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Parts Replaced")
     bios_updated = forms.BooleanField(required=False, label="BIOS Updated")
-    firmware_updated = forms.BooleanField(required=False, label="Firmware Updated")
+    firmware_updated = forms.BooleanField(required=False, label="Firmware Updates")
     testing_results = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Testing Results")
     remarks = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label="Remarks")
     completed_by = forms.ModelChoiceField(queryset=User.objects.none(), required=False, label="Completed By")
     completion_date = forms.DateField(required=False, label="Completion Date", widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}))
-    final_device_status = forms.ChoiceField(choices=(("", "Select final status"),) + Record.FINAL_DEVICE_STATUS_CHOICES, required=False, label="Final Device Status")
+    final_device_status = forms.ChoiceField(choices=(("", "Select final outcome"),) + Record.FINAL_DEVICE_STATUS_CHOICES, required=False, label="Final Outcome")
 
     def __init__(self, *args, categories=None, record_types=None, record=None, **kwargs):
         super().__init__(*args, **kwargs)

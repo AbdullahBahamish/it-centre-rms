@@ -67,10 +67,10 @@
     {% if record.case_description or record.diagnosis or record.repair_performed or record.testing_results %}
     <div class="description-section">
         <span class="meta-label">Technical Report</span>
-        {% if record.case_description %}<div class="description-body"><strong>Problem Description</strong>{{ record.case_description|linebreaks }}</div>{% endif %}
-        {% if record.diagnosis %}<div class="description-body"><strong>Diagnosis</strong>{{ record.diagnosis|linebreaks }}</div>{% endif %}
-        {% if record.repair_performed %}<div class="description-body"><strong>Repair Performed</strong>{{ record.repair_performed|linebreaks }}</div>{% endif %}
-        {% if record.testing_results %}<div class="description-body"><strong>Testing Results</strong>{{ record.testing_results|linebreaks }}</div>{% endif %}
+        {% if record.case_description %}<div class="description-body"><strong>Problem Description</strong><div class="report-text">{{ case_description_display|linebreaksbr }}</div></div>{% endif %}
+        {% if record.diagnosis %}<div class="description-body"><strong>Diagnosis</strong><div class="report-text">{{ diagnosis_display|linebreaksbr }}</div></div>{% endif %}
+        {% if record.repair_performed %}<div class="description-body"><strong>Repair Performed</strong><div class="report-text">{{ repair_performed_display|linebreaksbr }}</div></div>{% endif %}
+        {% if record.testing_results %}<div class="description-body"><strong>Testing Results</strong><div class="report-text">{{ testing_results_display|linebreaksbr }}</div></div>{% endif %}
     </div>
     {% endif %}
 

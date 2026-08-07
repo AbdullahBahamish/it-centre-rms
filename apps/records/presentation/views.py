@@ -1,3 +1,4 @@
+import re
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import mimetypes
@@ -5,8 +6,10 @@ from pathlib import PurePosixPath
 from urllib.parse import quote
 
 from django.core.exceptions import SuspiciousFileOperation
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
 
 from apps.core.services import AccessService
 from apps.core.security import log_security_failure
@@ -17,6 +20,7 @@ from apps.records.application.use_cases import (
     DeleteRecordUseCase,
     GetRecordDetailUseCase,
     ListRecordsUseCase,
+    LookupAssetUseCase,
     RecordFormContextUseCase,
     UpdateRecordUseCase,
     UploadAttachmentUseCase,
@@ -25,7 +29,9 @@ from apps.records.presentation.forms import AttachmentUploadForm, RecordForm
 
 
 RECORD_FORM_PAYLOAD_FIELDS = (
+    "asset_id",
     "asset_tag",
+    "barcode",
     "device_type",
     "manufacturer",
     "model",
@@ -38,7 +44,11 @@ RECORD_FORM_PAYLOAD_FIELDS = (
     "location",
     "department",
     "room",
-    "device_owner",
+    "assigned_user",
+    "purchase_date",
+    "warranty_expiry",
+    "asset_status",
+    "asset_notes",
     "maintenance_type",
     "problem_category",
     "priority",
@@ -74,8 +84,43 @@ def _record_form_payload(form):
         "allow_all_contributors": form.cleaned_data["allow_all_contributors"],
         "case_description": form.cleaned_data["case_description"],
     }
-    payload.update({field: form.cleaned_data.get(field) for field in RECORD_FORM_PAYLOAD_FIELDS})
+    # Map asset_status to status and asset_notes to notes for repository
+    field_data = {field: form.cleaned_data.get(field) for field in RECORD_FORM_PAYLOAD_FIELDS}
+    if "asset_status" in field_data:
+        field_data["status"] = field_data.pop("asset_status")
+    if "asset_notes" in field_data:
+        field_data["notes"] = field_data.pop("asset_notes")
+    payload.update(field_data)
     return payload
+
+
+def _report_text_for_display(value, chunk_size=80):
+    """Escape report text and insert browser wrap points into long tokens."""
+    if not value:
+        return ""
+
+    parts = re.split(r"(\s+)", str(value))
+    rendered = []
+    for part in parts:
+        if not part or part.isspace():
+            rendered.append(part)
+            continue
+
+        chunks = (part[index:index + chunk_size] for index in range(0, len(part), chunk_size))
+        rendered.append("<wbr>".join(str(conditional_escape(chunk)) for chunk in chunks))
+    return mark_safe("".join(rendered))
+
+
+@login_required
+def asset_lookup(request):
+    asset_tag = request.GET.get("asset_tag", "").strip()
+    if not asset_tag:
+        return JsonResponse({"success": False, "error": "missing_asset_tag"}, status=400)
+    
+    result = LookupAssetUseCase().execute(asset_tag=asset_tag)
+    if result.success:
+        return JsonResponse({"success": True, "payload": result.payload})
+    return JsonResponse({"success": False, "error": result.error}, status=404 if result.error == "not_found" else 500)
 
 
 def record_list(request):
@@ -138,6 +183,10 @@ def record_detail(request, record_id):
             "can_update_record": AccessService.can(request.user, "update_record", record),
             "can_delete_record": AccessService.can(request.user, "delete_record", record),
             "allowed_attachment_extensions_text": extensions_result.payload if extensions_result.success else "",
+            "case_description_display": _report_text_for_display(record.case_description),
+            "diagnosis_display": _report_text_for_display(record.diagnosis),
+            "repair_performed_display": _report_text_for_display(record.repair_performed),
+            "testing_results_display": _report_text_for_display(record.testing_results),
         },
     )
 
@@ -186,7 +235,9 @@ def record_update(request, record_id):
     if record.asset:
         initial.update(
             {
+                "asset_id": record.asset.id,
                 "asset_tag": record.asset.asset_tag,
+                "barcode": record.asset.barcode,
                 "device_type": record.asset.device_type,
                 "manufacturer": record.asset.manufacturer,
                 "model": record.asset.model,
@@ -199,7 +250,11 @@ def record_update(request, record_id):
                 "location": record.asset.location,
                 "department": record.asset.department,
                 "room": record.asset.room,
-                "device_owner": record.asset.device_owner,
+                "assigned_user": record.asset.assigned_user,
+                "purchase_date": record.asset.purchase_date,
+                "warranty_expiry": record.asset.warranty_expiry,
+                "asset_status": record.asset.status,
+                "asset_notes": record.asset.notes,
             }
         )
 

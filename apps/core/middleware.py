@@ -26,6 +26,7 @@ EXEMPT_PATHS = [
     r"^/accounts/reset/done/$",
     r"^/admin/login/",
     r"^/health/$",
+    r"^/api/",
     r"^/static/",
     r"^/i18n/setlang/",
 ]
