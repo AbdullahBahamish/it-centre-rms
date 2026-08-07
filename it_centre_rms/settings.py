@@ -70,6 +70,15 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = Path(os.getenv("DJANGO_STATIC_ROOT", BASE_DIR / "staticfiles"))
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 RECORD_BACKUP_DIR = BASE_DIR / "backup" / "records"
 
@@ -114,6 +123,7 @@ API_TOKEN_TTL_SECONDS = int(os.getenv("DJANGO_API_TOKEN_TTL_SECONDS", "3600"))
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
