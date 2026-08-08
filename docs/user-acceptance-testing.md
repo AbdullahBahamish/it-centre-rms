@@ -7,7 +7,7 @@ Complete this checklist with IT Centre representatives before production launch.
 - An administrator can create, activate, deactivate, and assign only lower-ranked users.
 - A manager, staff member, and viewer see only actions allowed by their assigned role.
 - A user cannot assign themselves a privileged role or modify an equal/higher-ranked account.
-- Password-reset email is delivered through the university SMTP service and expires as configured.
+- Password-reset requests appear in the administration queue; approving one produces a temporary password and requires the user to choose a new password at sign-in.
 
 ## Records and files
 

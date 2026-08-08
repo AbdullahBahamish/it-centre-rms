@@ -160,6 +160,8 @@ class AccessService:
                 return cls.can_assign_role(user, obj.get("target"), obj.get("new_role"))
             if action == "deactivate_user":
                 return cls.can_deactivate_user(user, obj)
+            if action == "reset_user_password":
+                return cls.can_deactivate_user(user, obj)
             if action == "edit_role_permissions":
                 return cls.can_edit_role_permissions(user, obj)
             return False

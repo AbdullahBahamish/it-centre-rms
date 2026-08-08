@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.auth.views import redirect_to_login
+from django.shortcuts import redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse
 
@@ -31,10 +32,14 @@ EXEMPT_PATHS = [
     r"^/i18n/setlang/",
 ]
 
+PASSWORD_CHANGE_PATH = "/accounts/profile/password/"
+
 AUTHORITY_MUTATION_PATHS = [
     r"^/admin-panel/users/\d+/assign-role/$",
     r"^/admin-panel/users/\d+/activate/$",
     r"^/admin-panel/users/\d+/deactivate/$",
+    r"^/admin-panel/password-reset-requests/\d+/approve/$",
+    r"^/admin-panel/password-reset-requests/\d+/reject/$",
     r"^/admin-panel/permissions/\d+/$",
 ]
 
@@ -53,6 +58,13 @@ class AccessPolicyMiddleware:
                 return self.get_response(request)
 
             if request.user.is_authenticated:
+                profile = getattr(request.user, "userprofile", None)
+                if (
+                    profile
+                    and profile.must_change_password
+                    and request.path not in {PASSWORD_CHANGE_PATH, "/accounts/logout/"}
+                ):
+                    return redirect(PASSWORD_CHANGE_PATH)
                 return self.get_response(request)
 
             system_settings = self._get_system_settings()

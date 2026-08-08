@@ -24,11 +24,16 @@
             <span class="meta-label">Roles</span>
             <strong>{{ role_count }}</strong>
         </div>
+        <div class="stat-card">
+            <span class="meta-label">Pending Password Resets</span>
+            <strong>{{ pending_password_reset_count }}</strong>
+        </div>
     </div>
 
     <div class="actions">
         <a href="{% url 'admin_user_management' %}" class="btn btn-primary">User Administration</a>
         <a href="{% url 'admin_analytics' %}" class="btn btn-primary">View Analytics</a>
+        <a href="{% url 'admin_password_reset_requests' %}" class="btn btn-primary">Password Reset Requests</a>
         <a href="{% url 'admin_role_management' %}" class="btn btn-secondary">Role Management</a>
         <a href="{% url 'admin_permission_assignment' %}" class="btn btn-secondary">Role Permissions</a>
     </div>

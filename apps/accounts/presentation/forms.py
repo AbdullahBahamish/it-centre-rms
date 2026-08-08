@@ -25,9 +25,9 @@ class SignupForm(UserCreationForm):
 
 class PasswordRecoveryForm(forms.Form):
     identifier = forms.CharField(
-        label="Email or Phone Number",
+        label="Username, Email or Phone Number",
         max_length=100,
-        help_text="Enter the email address or phone number linked to your account.",
+        help_text="Enter an account identifier linked to your account.",
     )
 
 

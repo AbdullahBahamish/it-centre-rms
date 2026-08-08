@@ -88,6 +88,7 @@ class UserProfile(models.Model):
         blank=True,
         validators=[validate_image_file_extension],
     )
+    must_change_password = models.BooleanField(default=False)
     role = models.ForeignKey(
         Role,
         on_delete=models.PROTECT,
@@ -100,3 +101,36 @@ class UserProfile(models.Model):
     def __str__(self) -> str:
         role_name = self.role.display_name if self.role else "Unassigned"
         return f"{self.user.username} ({self.phone_number}) - {role_name}"
+
+
+class PasswordResetRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    identifier = models.CharField(max_length=100)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="password_reset_requests",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    processed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="processed_password_reset_requests",
+    )
+
+    class Meta:
+        ordering = ("-requested_at",)
+        indexes = [models.Index(fields=("status", "requested_at"))]
+
+    def __str__(self):
+        return f"Password reset request for {self.identifier} ({self.get_status_display()})"

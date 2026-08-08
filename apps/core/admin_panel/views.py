@@ -7,6 +7,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.conf import settings
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from apps.accounts.services import (
     RoleAssignmentService,
@@ -14,7 +15,7 @@ from apps.accounts.services import (
     activate_user as activate_user_service,
     deactivate_user as deactivate_user_service,
 )
-from apps.accounts.models import Role, RolePermission
+from apps.accounts.models import PasswordResetRequest, Role, RolePermission
 from apps.core.permissions import admin_required
 from apps.core.services import AccessService
 from apps.core.security import log_security_failure
@@ -47,6 +48,11 @@ def _require_permission(user, action, obj=None):
         raise Http404
 
 
+def _require_user_management_permission(user):
+    if not AccessService.can(user, "can_manage_users"):
+        raise Http404
+
+
 @login_required
 def admin_dashboard(request):
     if not AccessService.can(request.user, "access_admin_panel"):
@@ -58,8 +64,79 @@ def admin_dashboard(request):
             "user_count": User.objects.count(),
             "active_user_count": User.objects.filter(is_active=True).count(),
             "role_count": Role.objects.count(),
+            "pending_password_reset_count": PasswordResetRequest.objects.filter(
+                status=PasswordResetRequest.Status.PENDING
+            ).count(),
         },
     )
+
+
+@login_required
+@admin_required
+def password_reset_requests(request):
+    _require_user_management_permission(request.user)
+    requests = PasswordResetRequest.objects.select_related("user", "processed_by").all()
+    return render(request, "admin_panel/password_reset_requests.html", {"requests": requests})
+
+
+@login_required
+@admin_required
+def approve_password_reset_request(request, request_id):
+    _require_user_management_permission(request.user)
+    if request.method != "POST":
+        return redirect("admin_password_reset_requests")
+
+    reset_request = PasswordResetRequest.objects.select_related("user__userprofile").filter(pk=request_id).first()
+    if (
+        reset_request is None
+        or reset_request.status != PasswordResetRequest.Status.PENDING
+        or reset_request.user is None
+        or not AccessService.can(request.user, "reset_user_password", reset_request.user)
+    ):
+        raise Http404
+
+    temporary_password = f"Rms!{get_random_string(16)}"
+    reset_request.user.set_password(temporary_password)
+    reset_request.user.save(update_fields=["password"])
+    reset_request.user.userprofile.must_change_password = True
+    reset_request.user.userprofile.save(update_fields=["must_change_password"])
+    reset_request.status = PasswordResetRequest.Status.APPROVED
+    reset_request.processed_by = request.user
+    reset_request.processed_at = timezone.now()
+    reset_request.save(update_fields=["status", "processed_by", "processed_at"])
+
+    requests = PasswordResetRequest.objects.select_related("user", "processed_by").all()
+    return render(
+        request,
+        "admin_panel/password_reset_requests.html",
+        {"requests": requests, "temporary_password": temporary_password, "approved_request": reset_request},
+    )
+
+
+@login_required
+@admin_required
+def reject_password_reset_request(request, request_id):
+    _require_user_management_permission(request.user)
+    if request.method != "POST":
+        return redirect("admin_password_reset_requests")
+
+    reset_request = PasswordResetRequest.objects.select_related("user").filter(pk=request_id).first()
+    if (
+        reset_request is None
+        or reset_request.status != PasswordResetRequest.Status.PENDING
+        or (
+            reset_request.user is not None
+            and not AccessService.can(request.user, "reset_user_password", reset_request.user)
+        )
+    ):
+        raise Http404
+
+    reset_request.status = PasswordResetRequest.Status.REJECTED
+    reset_request.processed_by = request.user
+    reset_request.processed_at = timezone.now()
+    reset_request.save(update_fields=["status", "processed_by", "processed_at"])
+    messages.success(request, "Password reset request rejected.")
+    return redirect("admin_password_reset_requests")
 
 
 def _distribution(queryset, field_name, labels):

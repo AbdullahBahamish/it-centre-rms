@@ -1,14 +1,18 @@
 from django.contrib import messages
+from django.conf import settings
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import FileResponse, Http404
 from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN, PasswordResetConfirmView
+from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.views.generic.edit import FormView
 
 from apps.accounts.application.use_cases import RegisterUserUseCase, RequestPasswordResetUseCase
 from apps.accounts.domain.constants import GENERIC_PASSWORD_RESET_MESSAGE
+from apps.accounts.models import PasswordResetRequest
 from apps.accounts.presentation.forms import PasswordRecoveryForm, ProfileUpdateForm, SignupForm
 
 
@@ -34,10 +38,16 @@ def recover_password(request):
     if request.method == "POST":
         form = PasswordRecoveryForm(request.POST)
         if form.is_valid():
-            RequestPasswordResetUseCase().execute(
-                identifier=form.cleaned_data["identifier"],
-                request=request,
-            )
+            identifier = form.cleaned_data["identifier"].strip()
+            if settings.PASSWORD_RESET_METHOD == "email":
+                RequestPasswordResetUseCase().execute(identifier=identifier, request=request)
+            else:
+                user = get_user_model().objects.filter(
+                    Q(username__iexact=identifier)
+                    | Q(email__iexact=identifier)
+                    | Q(userprofile__phone_number=identifier)
+                ).first()
+                PasswordResetRequest.objects.create(identifier=identifier, user=user)
             messages.success(request, GENERIC_PASSWORD_RESET_MESSAGE)
             return redirect("recover_password")
     else:
@@ -71,6 +81,8 @@ def change_password(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
+            user.userprofile.must_change_password = False
+            user.userprofile.save(update_fields=["must_change_password"])
             update_session_auth_hash(request, user)
             messages.success(request, "Your password has been changed.")
             return redirect("profile")

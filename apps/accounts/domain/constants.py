@@ -28,5 +28,5 @@ LEGACY_ROLE_MAP = {
 }
 DEFAULT_USER_ROLE = VIEWER
 GENERIC_PASSWORD_RESET_MESSAGE = (
-    "If the account exists, password reset instructions have been sent."
+    "Your password reset request has been submitted for administrator approval."
 )

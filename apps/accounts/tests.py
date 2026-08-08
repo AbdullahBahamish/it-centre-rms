@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.bootstrap import bootstrap_roles_and_permissions
-from apps.accounts.models import Permission, Role, UserProfile
+from apps.accounts.models import PasswordResetRequest, Permission, Role, UserProfile
 from apps.accounts.services import RoleAssignmentService
 from apps.accounts.services.role_permissions import RolePermissionService
 from apps.accounts.services.user_management import UserLifecycleService, UserManagementService
@@ -117,7 +117,7 @@ class PasswordRecoverySecurityTests(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "If the account exists, password reset instructions have been sent.")
+        self.assertContains(response, "Your password reset request has been submitted for administrator approval.")
 
     def test_recovery_response_is_generic_for_known_identifier(self):
         response = self.client.post(
@@ -126,13 +126,64 @@ class PasswordRecoverySecurityTests(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "If the account exists, password reset instructions have been sent.")
+        self.assertContains(response, "Your password reset request has been submitted for administrator approval.")
 
     @override_settings(AUTH_RATE_LIMITS={"/accounts/recover-password/": (1, 300)})
     def test_recovery_endpoint_is_rate_limited(self):
         self.client.post(reverse("recover_password"), {"identifier": "bob@example.com"})
         response = self.client.post(reverse("recover_password"), {"identifier": "bob@example.com"})
         self.assertEqual(response.status_code, 429)
+
+    def test_recovery_creates_an_administrator_request(self):
+        response = self.client.post(
+            reverse("recover_password"),
+            {"identifier": "bob"},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        reset_request = PasswordResetRequest.objects.get()
+        self.assertEqual(reset_request.user, self.user)
+        self.assertEqual(reset_request.status, PasswordResetRequest.Status.PENDING)
+
+
+class PasswordResetRequestAdministrationTests(TestCase):
+    def setUp(self):
+        self.admin = force_role(
+            User.objects.create_user(username="reset-admin", password="StrongPass123!"),
+            Role.ADMIN,
+            "7000000110",
+        )
+        self.user = force_role(
+            User.objects.create_user(username="reset-user", password="OldPass123!"),
+            Role.STAFF,
+            "7000000111",
+        )
+        self.reset_request = PasswordResetRequest.objects.create(identifier="reset-user", user=self.user)
+        self.client.force_login(self.admin)
+
+    def test_admin_can_approve_request_and_set_temporary_password(self):
+        response = self.client.post(
+            reverse("admin_approve_password_reset_request", args=[self.reset_request.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        temporary_password = response.context["temporary_password"]
+        self.user.refresh_from_db()
+        self.reset_request.refresh_from_db()
+        self.assertTrue(self.user.check_password(temporary_password))
+        self.assertTrue(self.user.userprofile.must_change_password)
+        self.assertEqual(self.reset_request.status, PasswordResetRequest.Status.APPROVED)
+        self.assertEqual(self.reset_request.processed_by, self.admin)
+
+    def test_temporary_password_requires_a_change_before_access(self):
+        self.user.userprofile.must_change_password = True
+        self.user.userprofile.save(update_fields=["must_change_password"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("record_list"))
+
+        self.assertRedirects(response, reverse("change_password"))
 
 
 class ProfileManagementTests(TestCase):

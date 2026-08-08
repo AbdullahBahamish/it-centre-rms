@@ -76,6 +76,6 @@ Nginx serves collected static files. Record files remain protected and are downl
 ## Go-live checklist
 
 1. CI is green and `check --deploy --fail-level WARNING` passes with production environment values.
-2. HTTPS, SMTP password reset, backup, and restore have been verified.
+2. HTTPS, administrator-approved password reset, backup, and restore have been verified. If email reset is enabled, verify SMTP delivery as described in `optional-email-password-reset.md`.
 3. Complete [user acceptance testing](user-acceptance-testing.md) with IT Centre representatives.
 4. Document the named owners for application administration, database backups, restores, certificate renewal, and incident response.
