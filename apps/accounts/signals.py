@@ -3,6 +3,7 @@ from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
 
 from apps.accounts.bootstrap import (
+    bootstrap_initial_admin,
     bootstrap_existing_user_profiles,
     bootstrap_roles_and_permissions,
     ensure_user_profile,
@@ -24,3 +25,4 @@ def bootstrap_access_data(sender, app_config, using, **kwargs):
         return
     bootstrap_roles_and_permissions(using=using)
     bootstrap_existing_user_profiles(using=using)
+    bootstrap_initial_admin(using=using)

@@ -65,4 +65,5 @@ For a university local-server installation with PostgreSQL, Redis, HTTPS, SMTP,
 backups, and service configuration, follow [the deployment guide](docs/deployment.md).
 Complete [user acceptance testing](docs/user-acceptance-testing.md) before go-live.
 For administrator setup, follow [the admin setup guide](docs/admin-setup.md).
+For a first administrator on Render Free, follow [the Render Free admin guide](docs/render-free-admin-setup.md).
 For system integrations, see [the API guide](docs/api.md).

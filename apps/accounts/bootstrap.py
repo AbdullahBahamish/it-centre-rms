@@ -1,4 +1,5 @@
 import logging
+import os
 
 from django.contrib.auth import get_user_model
 from django.db import DEFAULT_DB_ALIAS, transaction
@@ -135,3 +136,32 @@ def bootstrap_existing_user_profiles(*, using=DEFAULT_DB_ALIAS):
     User = get_user_model()
     for user in User.objects.using(using).all().only("id"):
         ensure_user_profile(user=user, using=using)
+
+
+def bootstrap_initial_admin(*, using=DEFAULT_DB_ALIAS):
+    username = os.getenv("DJANGO_BOOTSTRAP_ADMIN_USERNAME", "").strip()
+    password = os.getenv("DJANGO_BOOTSTRAP_ADMIN_PASSWORD", "")
+    email = os.getenv("DJANGO_BOOTSTRAP_ADMIN_EMAIL", "").strip()
+
+    if not username and not password:
+        return None
+    if not username or not password:
+        logger.warning("Initial administrator bootstrap skipped because its credentials are incomplete.")
+        return None
+
+    User = get_user_model()
+    if User.objects.using(using).filter(username=username).exists():
+        return None
+
+    with transaction.atomic(using=using):
+        admin_user = User.objects.db_manager(using).create_superuser(
+            username=username,
+            email=email,
+            password=password,
+        )
+        admin_role = Role.objects.using(using).get(name=ADMIN)
+        profile = ensure_user_profile(user=admin_user, using=using)
+        profile.role = admin_role
+        profile.save(update_fields=["role"])
+    logger.info("Initial administrator account created.", extra={"username": username, "using": using})
+    return admin_user

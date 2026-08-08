@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+import os
 
 from django.db import OperationalError
 
@@ -6,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from apps.accounts.bootstrap import bootstrap_roles_and_permissions
+from apps.accounts.bootstrap import bootstrap_initial_admin, bootstrap_roles_and_permissions
 from apps.accounts.models import PasswordResetRequest, Permission, Role, UserProfile
 from apps.accounts.services import RoleAssignmentService
 from apps.accounts.services.role_permissions import RolePermissionService
@@ -72,6 +73,21 @@ class ProfileBootstrapTests(TestCase):
         admin_role.refresh_from_db()
         self.assertEqual(admin_role.rank, 999)
         self.assertNotEqual(admin_role.rank, original_rank)
+
+    def test_initial_admin_bootstrap_creates_only_one_account(self):
+        credentials = {
+            "DJANGO_BOOTSTRAP_ADMIN_USERNAME": "render-admin",
+            "DJANGO_BOOTSTRAP_ADMIN_PASSWORD": "StrongPass123!",
+            "DJANGO_BOOTSTRAP_ADMIN_EMAIL": "admin@example.com",
+        }
+        with patch.dict(os.environ, credentials, clear=False):
+            admin_user = bootstrap_initial_admin()
+            duplicate = bootstrap_initial_admin()
+
+        self.assertIsNotNone(admin_user)
+        self.assertIsNone(duplicate)
+        self.assertTrue(admin_user.is_superuser)
+        self.assertEqual(admin_user.userprofile.role.name, Role.ADMIN)
 
     def test_runtime_invariant_guard_blocks_missing_profile(self):
         user = User.objects.create_user(username="repair", email="repair@example.com", password="StrongPass123!")
